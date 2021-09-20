@@ -1,9 +1,7 @@
-"""
-Routes and views for the flask application.
-"""
+import sqlite3
 
 from datetime import datetime
-from flask import render_template
+from flask import render_template, request
 from Drug_Shortage_CA_Analysis import app
 
 @app.route('/')
@@ -35,3 +33,15 @@ def about():
         year=datetime.now().year,
         message='Your application description page.'
     )
+
+@app.route('/summary')
+def summary():
+    if request.method == "POST":
+        return render_template('to_do.html')
+    else:
+        con = sqlite3.connect("drug_names.db")
+        con.execute("CREATE TABLE drug_names (din NUMERIC, name TEXT)")
+        con.execute("CREATE TABLE manufacturer_names (company_id NUMERIC, name TEXT)")
+        con.execute("CREATE TABLE ingredient_names (atc_id NUMERIC, name TEXT)")
+        con.close()
+        return render_template('summaries.html')
