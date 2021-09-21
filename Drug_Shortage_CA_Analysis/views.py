@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import pip._vendor.requests
 
 from datetime import datetime
 from flask import render_template, request
@@ -42,9 +43,18 @@ def summary():
     else:
         con = sqlite3.connect("drug_names.db")
         url = "https://health-products.canada.ca/api/drug/drugproduct"
-        response = requests.get(url)
+        response = pip._vendor.requests.get(url)
         js = response.json()
         for x in range(len(js)):
+            dc = js[x]["drug_code"]
             din = js[x]["drug_identification_number"]
+            dn = js[x]["brand_name"]
+            ud = js[x]["last_update_date"]
+            row = con.execute("SELECT * FROM drug_names WHERE drug_code = ?", dc)
+            if len(row) == 0:
+                con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?)", dc, din, dn, ud)
+            elif ud != row[0]["updated"]:
+                con.execute("DELETE FROM drug_names WHERE drug_code = ?", drug_code)
+                con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?)", dc, din, dn, ud)
         con.close()
         return render_template('summaries.html')
