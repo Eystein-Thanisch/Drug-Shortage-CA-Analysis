@@ -90,12 +90,16 @@ def summary():
         url = "https://health-products.canada.ca/api/drug/activeingredient"
         response = pip._vendor.requests.get(url)
         js = response.json()
-        #db_now = con.execute("SELECT name FROM ingredient_names")
+        db_now = con.execute("SELECT name FROM ingredient_names")
+        names = []
+        for r in db_now:
+            names.append([r[0]])
         for x in range(len(js)):
-            drc = js[x]["drug_code"]
             name = js[x]["ingredient_name"]
-            var_list = [drc, name]
-            con.execute("INSERT INTO ingredient_names (drug_code, name) VALUES (?,?)", var_list)
+            if name in names:
+                continue
+            else:
+                con.execute("INSERT INTO ingredient_names (name) VALUES (?)", (name,))
         con.commit()
         con.close()
         return render_template('summaries.html')
