@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 from datetime import datetime
 from flask import render_template, request
@@ -40,8 +41,10 @@ def summary():
         return render_template('to_do.html')
     else:
         con = sqlite3.connect("drug_names.db")
-        con.execute("CREATE TABLE drug_names (din NUMERIC, name TEXT)")
-        con.execute("CREATE TABLE manufacturer_names (company_id NUMERIC, name TEXT)")
-        con.execute("CREATE TABLE ingredient_names (atc_id NUMERIC, name TEXT)")
+        url = "https://health-products.canada.ca/api/drug/drugproduct"
+        response = requests.get(url)
+        js = response.json()
+        for x in range(len(js)):
+            din = js[x]["drug_identification_number"]
         con.close()
         return render_template('summaries.html')
