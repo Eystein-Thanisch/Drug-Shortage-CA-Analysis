@@ -91,14 +91,16 @@ def summary():
         response = pip._vendor.requests.get(url)
         js = response.json()
         db_now = con.execute("SELECT name FROM ingredient_names")
-        names = []
+        db_names = []
         for r in db_now:
-            names.append([r[0]])
+            db_names.append([r[0]])
+        these_names = []
         for x in range(len(js)):
             name = js[x]["ingredient_name"]
-            if name in names:
+            if name in db_names or name in these_names:
                 continue
             else:
+                these_names.append(name)
                 con.execute("INSERT INTO ingredient_names (name) VALUES (?)", (name,))
         con.commit()
         con.close()
