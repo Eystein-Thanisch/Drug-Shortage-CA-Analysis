@@ -50,15 +50,11 @@ def summary():
         response = pip._vendor.requests.get(url)
         js = response.json()
         for x in range(len(js)):
-            dc = int(js[x]["drug_code"])
-            din = str(js[x]["drug_identification_number"])
+            drc = js[x]["drug_code"]
+            din = js[x]["drug_identification_number"]
             dn = js[x]["brand_name"]
             ud = js[x]["last_update_date"]
-            row = con.execute("SELECT * FROM drug_names WHERE drug_code = ?", dc)
-            if len(row) == 0:
-                con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?)", dc, din, dn, ud)
-            elif ud != row[0]["updated"]:
-                con.execute("DELETE FROM drug_names WHERE drug_code = ?", drug_code)
-                con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?)", dc, din, dn, ud)
+            var_list = [drc, din, dn, ud]
+            con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?,?)", var_list)
         con.close()
         return render_template('summaries.html')
