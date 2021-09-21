@@ -66,7 +66,7 @@ def update_names():
 
     # Load ingredients
     ingredients = []
-    url = "https://www.drugshortagescanada.ca/api/v1/search"
+    url = "https://www.drugshortagescanada.ca/api/v1/search?limit=50&page=2"
     # TO DO: Move the auth-token to the environment before submission!
     auth_header = {'auth-token' : '02597e45864d4229bcb509e6db650f7a'}
     response = pip._vendor.requests.get(url, headers = auth_header)
