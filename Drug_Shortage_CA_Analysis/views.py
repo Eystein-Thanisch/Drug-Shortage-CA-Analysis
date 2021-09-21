@@ -56,6 +56,5 @@ def summary():
             ud = js[x]["last_update_date"]
             var_list = [drc, din, dn, ud]
             con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?,?)", var_list)
-        con.commit()
         con.close()
         return render_template('summaries.html')
