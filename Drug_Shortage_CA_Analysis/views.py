@@ -93,7 +93,7 @@ def summary():
         db_now = con.execute("SELECT name FROM ingredient_names")
         db_names = []
         for r in db_now:
-            db_names.append([r[0]])
+            db_names.append(r[0])
         these_names = []
         for x in range(len(js)):
             name = js[x]["ingredient_name"]
