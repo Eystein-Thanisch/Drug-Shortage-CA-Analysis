@@ -74,17 +74,17 @@ def summary():
         response = pip._vendor.requests.get(url)
         js = response.json()
         db_now = con.execute("SELECT company_id FROM manufacturer_names")
-        #ccs = []
-        #for r in db_now:
-        #    ccs.append(r[0])
+        ccs = []
+        for r in db_now:
+            ccs.append(r[0])
         for x in range(len(js)):
             cc = js[x]["company_code"] 
-        #    if cc in ccs:
-        #        continue
-        #    else:
-            cn = js[x]["company_name"]
-            var_list = [cc, cn]
-            con.execute("INSERT INTO manufacturer_names (company_id, name) VALUES (?,?)", var_list)
+            if cc in ccs:
+                continue
+            else:
+                cn = js[x]["company_name"]
+                var_list = [cc, cn]
+                con.execute("INSERT INTO manufacturer_names (company_id, name) VALUES (?,?)", var_list)
         con.commit()
         con.close()
         return render_template('summaries.html')
