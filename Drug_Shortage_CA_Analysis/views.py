@@ -46,6 +46,8 @@ def summary():
         return render_template('to_do.html')
     else:
         con = sqlite3.connect(db_path)
+
+        # Load drug names
         url = "https://health-products.canada.ca/api/drug/drugproduct"
         response = pip._vendor.requests.get(url)
         js = response.json()
@@ -53,19 +55,36 @@ def summary():
         drcs = {}
         for r in db_now:
             drcs[r[0]] = r[1]
-        #counter = 0
         for x in range(len(js)):
             drc = js[x]["drug_code"]
             ud = js[x]["last_update_date"] 
-            if drc not in drcs:
-                continue
-            elif drcs[drc] != ud:
-                din = js[x]["drug_identification_number"]
-                dn = js[x]["brand_name"]
-                var_list = [drc, din, dn, ud]
-                con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?,?)", var_list)
+            if drc in drcs:
+                if drcs[drc] != ud:
+                    din = js[x]["drug_identification_number"]
+                    dn = js[x]["brand_name"]
+                    var_list = [drc, din, dn, ud]
+                    con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?,?)", var_list)
+                else:
+                    continue
             else:
                 continue
+        
+        # Load manufacturer names
+        url = "https://health-products.canada.ca/api/drug/company"
+        response = pip._vendor.requests.get(url)
+        js = response.json()
+        db_now = con.execute("SELECT company_id FROM manufacturer_names")
+        #ccs = []
+        #for r in db_now:
+        #    ccs.append(r[0])
+        for x in range(len(js)):
+            cc = js[x]["company_code"] 
+        #    if cc in ccs:
+        #        continue
+        #    else:
+            cn = js[x]["company_name"]
+            var_list = [cc, cn]
+            con.execute("INSERT INTO manufacturer_names (company_id, name) VALUES (?,?)", var_list)
         con.commit()
         con.close()
         return render_template('summaries.html')
