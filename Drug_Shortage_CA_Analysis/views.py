@@ -11,6 +11,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Functions
 def update_names():
+    db_path = os.path.join(BASE_DIR, "dpd_search_terms.db")
     con = sqlite3.connect(db_path)
 
     # Load drug names
@@ -106,7 +107,6 @@ def about():
 
 @app.route('/summary')
 def summary():
-    db_path = os.path.join(BASE_DIR, "dpd_search_terms.db")
     if request.method == "POST":
         return render_template('to_do.html')
     else:
