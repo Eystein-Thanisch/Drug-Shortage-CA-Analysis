@@ -49,13 +49,23 @@ def summary():
         url = "https://health-products.canada.ca/api/drug/drugproduct"
         response = pip._vendor.requests.get(url)
         js = response.json()
+        db_now = con.execute("SELECT drug_code,updated FROM drug_names")
+        drcs = {}
+        for r in db_now:
+            drcs[r[0]] = r[1]
+        #counter = 0
         for x in range(len(js)):
             drc = js[x]["drug_code"]
-            din = js[x]["drug_identification_number"]
-            dn = js[x]["brand_name"]
-            ud = js[x]["last_update_date"]
-            var_list = [drc, din, dn, ud]
-            con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?,?)", var_list)
+            ud = js[x]["last_update_date"] 
+            if drc not in drcs:
+                continue
+            elif drcs[drc] != ud:
+                din = js[x]["drug_identification_number"]
+                dn = js[x]["brand_name"]
+                var_list = [drc, din, dn, ud]
+                con.execute("INSERT INTO drug_names (drug_code, din, name, updated) VALUES (?,?,?,?)", var_list)
+            else:
+                continue
         con.commit()
         con.close()
         return render_template('summaries.html')
