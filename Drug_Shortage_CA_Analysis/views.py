@@ -137,4 +137,4 @@ def summary():
         return render_template('to_do.html')
     else:
         lists = update_names()
-        return render_template('summaries.html', lists)
+        return render_template('summaries.html', lists=lists)
