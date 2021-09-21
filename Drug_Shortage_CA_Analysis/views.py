@@ -85,6 +85,17 @@ def summary():
                 cn = js[x]["company_name"]
                 var_list = [cc, cn]
                 con.execute("INSERT INTO manufacturer_names (company_id, name) VALUES (?,?)", var_list)
+
+        # Load ingredients
+        url = "https://health-products.canada.ca/api/drug/activeingredient"
+        response = pip._vendor.requests.get(url)
+        js = response.json()
+        #db_now = con.execute("SELECT name FROM ingredient_names")
+        for x in range(len(js)):
+            drc = js[x]["drug_code"]
+            name = js[x]["ingredient_name"]
+            var_list = [drc, name]
+            con.execute("INSERT INTO ingredient_names (drug_code, name) VALUES (?,?)", var_list)
         con.commit()
         con.close()
         return render_template('summaries.html')
