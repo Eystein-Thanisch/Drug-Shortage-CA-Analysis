@@ -14,6 +14,8 @@ def update_names():
     db_path = os.path.join(BASE_DIR, "dpd_search_terms.db")
     con = sqlite3.connect(db_path)
     lists = []
+    now = datetime.today().strftime('%Y-%m-%d')
+    con.execute("INSERT INTO updates (date) VALUES (?)", (now,))
 
     # Load drug names
     drugs = []
@@ -90,6 +92,28 @@ def update_names():
     lists.append(ingredients)
     return drugs
 
+def get_names():
+    lists = []
+    db_path = os.path.join(BASE_DIR, "dpd_search_terms.db")
+    con = sqlite3.connect(db_path)
+    drugs = []
+    db_now = con.execute("SELECT din,name FROM drug_names")
+    for r in db_now:
+        drug = {}
+        drug = {"code" : r[0], "name" : r[1]}
+        drugs.append(drug)
+    lists.append[drugs]
+
+def update_needed():
+    db_path = os.path.join(BASE_DIR, "dpd_search_terms.db")
+    con = sqlite3.connect(db_path)
+    now = datetime.today().strftime('%Y-%m-%d')
+    last_update = con.execute("SELECT MAX(update) FROM updates")
+    update_time = last_update[0]["MAX(update)"] + datetime.timedelta(days=7)
+    if now >= update_time:
+        return True
+    else:
+        return False
 
 # Routes
 
@@ -128,5 +152,9 @@ def summary():
     if request.method == "POST":
         return render_template('to_do.html')
     else:
-        lists = update_names()
+        lists = []
+        if update_needed:
+            lists = update_names()
+        else:
+            lists = get_names()
         return render_template('summaries.html', lists=lists)
