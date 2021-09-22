@@ -66,33 +66,25 @@ def update_names():
 
     # Load ingredients
     ingredients = []
-    url = "https://www.drugshortagescanada.ca/api/v1/search?limit=50&page=2"
-    # TO DO: Move the auth-token to the environment before submission!
-    auth_header = {'auth-token' : '02597e45864d4229bcb509e6db650f7a'}
-    response = pip._vendor.requests.get(url, headers = auth_header)
-    total_js = response.json()
-    js = total_js["data"]
+    url = "https://health-products.canada.ca/api/drug/activeingredient"
+    response = pip._vendor.requests.get(url)
+    js = response.json()
     for x in range(len(js)):
-        for y in range(len(js[x]["drug"]["drug_ingredients"])):
-            ingredient = {}
-            ing_code = js[x]["drug"]["drug_ingredients"][y]["ingredient"]["ingredient_code"]
-            ing_name = js[x]["drug"]["drug_ingredients"][y]["ingredient"]["en_name"]
-            ingredient = {"name" : ing_name, "code" : ing_code}
+        for y in range(len(js[x])):
+            ingredient = js[x]["ingredient_name"]
             ingredients.append(ingredient)
-    db_now = con.execute("SELECT ingredient_code FROM ingredient_names")
-    db_codes = []
+    db_now = con.execute("SELECT name FROM ingredient_names")
+    db_names = []
     for r in db_now:
-        db_codes.append(r[0])
-    these_codes = []
+        db_names.append(r[0])
+    these_names = []
     for x in range(len(ingredients)):
-        name = ingredients[x]["name"]
-        code = ingredients[x]["code"]
-        if code in db_codes or code in these_codes:
+        name = ingredients[x]
+        if name in db_names or name in these_names:
             continue
         else:
-            these_codes.append(code)
-            var_list = [name, code]
-            con.execute("INSERT INTO ingredient_names (name, ingredient_code) VALUES (?,?)", var_list)
+            these_names.append(name)
+            con.execute("INSERT INTO ingredient_names (name) VALUES (?)", (name,))
     con.commit()
     con.close()
     lists.append(ingredients)
