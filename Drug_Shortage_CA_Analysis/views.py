@@ -88,7 +88,7 @@ def update_names():
     con.commit()
     con.close()
     lists.append(ingredients)
-    return lists
+    return drugs
 
 
 # Routes

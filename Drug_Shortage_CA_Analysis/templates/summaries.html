@@ -15,10 +15,21 @@
                     </div>
                 </div>
             </div>
+            <!-- Source: https://select2.org/getting-started/basic-usage -->
             <div class="col-md-4">
-                <input autofocus class="form-control autocomplete" name="ID" placeholder="ID" type="text">
+                <select id="s2_1" class="js-example-basic-single" name="name">
+                    <option></option>
+                    {% for item in lists %}
+                        <option value="{{ item["code"] }}">{{ item["name"] }}</option>
+                    {% endfor %}
+                </select>
                 <p>or</p>
-                <input autofocus class="form-control autocomplete" name="name" placeholder="Name" type="text">
+                <select id="s2_2" class="js-example-basic-single" name="id">
+                    <option></option>
+                    {% for item in lists %}
+                        <option value="{{ item["code"] }}">{{ item["code"] }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="col-md-4">
                 <input class="btn btn-primary" type="submit">
