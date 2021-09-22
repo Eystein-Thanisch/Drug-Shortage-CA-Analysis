@@ -6,17 +6,19 @@
     <div class="form-group">
         <div class="row">
             <div class="col-md-4">
-                <select name="subject" id="sum_sub">
-                    <option disabled selected value="">Query for</option>
-                    <option value="medicine">Medicine</option>
-                    <option value="manufacturer">Manufacturer</option>
-                    <option value="ingredient">Active Ingredient</option>
-                </select>
+                <div class="dropdown">
+                    <button class="dropbtn">Subject</button>
+                    <div class="dropdown-content">
+                        <a href="#">Drug</a>
+                        <a href="#">Manufacturer</a>
+                        <a href="#">Active Ingredient</a>
+                    </div>
+                </div>
             </div>
             <div class="col-md-4">
-                <input autocomplete="off" autofocus class="form-control" name="ID" placeholder="ID" type="text">
+                <input autofocus class="form-control autocomplete" name="ID" placeholder="ID" type="text">
                 <p>or</p>
-                <input autocomplete="off" autofocus class="form-control" name="name" placeholder="Name" type="text">
+                <input autofocus class="form-control autocomplete" name="name" placeholder="Name" type="text">
             </div>
             <div class="col-md-4">
                 <input class="btn btn-primary" type="submit">
