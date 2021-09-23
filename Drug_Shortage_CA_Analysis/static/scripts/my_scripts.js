@@ -1,31 +1,118 @@
 // Source: https://select2.org/getting-started/basic-usage
+
 $(document).ready(function () {
-    $('.js-example-basic-single').select2();
+    $('.js-example-basic-single').select2({minimumInputLength: 3});
 });
-$('#s2_1').select2({
-    placeholder: "Name",
-    minimumInputLength: 3
-});
-$('#s2_2').select2({
-    placeholder: "ID",
-    minimumInputLength: 3
+$('#s2').on('select2:select', function (e) {
+    $("#sub_cont").show();
 });
 
-// JavaScript source code
-function get_list(name, lists) {
-    if (name = "drug") {
-        list = lists[0];
-        return list;
+
+// Project JavaScript
+function search_term(lists, n) {
+    window.lists = lists;
+    var sel = document.querySelector("#s2_cont");
+    var sub = document.querySelector("#sub_cont");
+    sel.hidden = true;
+    sub.hidden = true;
+    if (document.querySelector("#searchby") != null) {
+        var prev = document.querySelector("#searchby");
+        prev.parentNode.removeChild(prev);
     }
-    else if (name = "manufacturer") {
-        list = lists[1];
-        return list;
+    var subjs = document.querySelector("#subjects");
+    var div = document.createElement("DIV");
+    div.setAttribute("id", "searchby");
+    div.setAttribute("class", "dropdown");
+    var btn = document.createElement("BUTTON");
+    btn.setAttribute("class", "dropbtn");
+    btn.innerHTML = "Search by";
+    div2 = document.createElement("DIV");
+    div2.setAttribute("class", "dropdown-content");
+    var a1 = document.createElement("A");
+    var str = ""
+    var c;
+    var nstr = n.toString()
+    a1.setAttribute("class", "type");
+    if (n == 0) {
+        a1.innerHTML = "Drug name";
+        c = 1;
+        cstr = c.toString()
+        next_func = str.concat("get_dropdown(", nstr, ", ", cstr, ")")
+        a1.setAttribute("onclick", next_func);
     }
-    else if (name = "ingredient") {
-        list = lists[2];
-        return list;
+    else if (n == 1) {
+        a1.innerHTML = "Manufacturer name";
+        c = 1;
+        cstr = c.toString()
+        next_func = str.concat("get_dropdown(", nstr, ", ", cstr, ")")
+        a1.setAttribute("onclick", next_func);
     }
-    else {
-        alert("Please select an item from the list!")
+    else if (n == 2) {
+        a1.innerHTML = "Ingredient name";
+        c = 1;
+        cstr = c.toString()
+        next_func = str.concat("get_dropdown(", nstr, ", ", cstr, ")")
+        a1.setAttribute("onclick", next_func);
     }
+    div2.appendChild(a1)
+    div.appendChild(btn)
+    div.appendChild(div2)
+    var a2;
+    if (n == 0 || n == 1) {
+        a2 = document.createElement("A");
+        a2.setAttribute("class", "type");
+        if (n == 0) {
+            a2.innerHTML = "DIN";
+            c = 2;
+            cstr = c.toString()
+            next_func = str.concat("get_dropdown(", nstr, ", ", cstr, ")")
+            a2.setAttribute("onclick", next_func);
+        }
+        else if (n == 1) {
+            a2.innerHTML = "Company code";
+            c = 2;
+            cstr = c.toString()
+            next_func = str.concat("get_dropdown(", nstr, ", ", cstr, ")")
+            a2.setAttribute("onclick", next_func);
+        }
+        div2.appendChild(a2);
+    }
+    subjs.parentNode.appendChild(div);
+    return;
+}
+
+function get_dropdown(n, c) {
+    var sel = document.querySelector("#s2");
+    sel.innerHTML = "";
+    var sub = document.querySelector("#sub_cont");
+    var sel_cont = document.querySelector("#s2_cont");
+    sel_cont.hidden = true;
+    sub.hidden = true;
+    populate_dropdowns(n, c);
+}
+
+function populate_dropdowns(n, c) {
+    var list = lists[n];
+    var sel = document.querySelector("#s2");
+    var sel_cont = document.querySelector("#s2_cont");
+    sel.innerHTML = ""
+    var l = list.length;
+    if (c == 1) {
+        for (let i = 0; i < l; i++) {
+            option = document.createElement("OPTION");
+            option.innerHTML = list[i]["name"];
+            option.setAttribute('value', list[i]["code"]);
+            sel.appendChild(option);
+        }
+    }
+    else if (c == 2) {
+        for (let i = 0; i < l; i++) {
+            option = document.createElement("OPTION");
+            option.innerHTML = list[i]["code"];
+            option.setAttribute('value', list[i]["code"]);
+            sel.appendChild(option);
+        }
+    }
+    sel_cont.hidden = false;
+    return;
 }

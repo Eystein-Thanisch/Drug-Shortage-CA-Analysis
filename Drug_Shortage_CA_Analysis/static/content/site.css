@@ -43,38 +43,6 @@ input[type="checkbox"].input-validation-error {
 
 /* Project styles start here */
 
-/* Source: https://www.w3schools.com/howto/howto_js_autocomplete.asp */
-.autocomplete {
-    position: relative;
-    display: inline-block;
-}
-.autocomplete-items {
-    position: absolute;
-    border: 1px solid #d4d4d4;
-    border-bottom: none;
-    border-top: none;
-    z-index: 99;
-    top: 100%;
-    left: 0;
-    right: 0;
-}
-
-.autocomplete-items div {
-    padding: 10px;
-    cursor: pointer;
-    background-color: #fff;
-    border-bottom: 1px solid #d4d4d4;
-}
-
-.autocomplete-items div:hover {
-    background-color: #e9e9e9;
-}
-
-.autocomplete-active {
-    background-color: DodgerBlue !important;
-    color: #ffffff;
-}
-
 /* Source: https://www.w3schools.com/howto/howto_css_dropdown.asp */
 .dropbtn {
     background-color: #04AA6D;
@@ -115,4 +83,13 @@ input[type="checkbox"].input-validation-error {
 
 .dropdown:hover .dropbtn {
     background-color: #3e8e41;
-} 
+}
+
+/* Source: https://seegatesite.com/css-how-to-fixed-select2-responsive-width/ */
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-search--dropdown .select2-search__field {
+    width: 98%;
+}

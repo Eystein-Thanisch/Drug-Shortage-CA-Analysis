@@ -14,6 +14,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def get_names():
     lists = []
 
+    #Drugs
     drugs = []
     url = "https://health-products.canada.ca/api/drug/drugproduct"
     response = pip._vendor.requests.get(url)
@@ -26,6 +27,7 @@ def get_names():
         drugs.append(drug)
     lists.append(drugs)
 
+    #Manufacturers
     manufacturers = []
     url = "https://health-products.canada.ca/api/drug/company"
     response = pip._vendor.requests.get(url)
@@ -38,6 +40,7 @@ def get_names():
         manufacturers.append(manufacturer)
     lists.append(manufacturers)
 
+    #Ingredients
     ingredients = []
     url = "https://health-products.canada.ca/api/drug/activeingredient"
     response = pip._vendor.requests.get(url)
@@ -48,7 +51,7 @@ def get_names():
         ing_name = js[x]["ingredient_name"]
         ingredient = {"name" : ing_name, "code" : ing_code}
         ingredients.append(ingredient)
-    lists.append(manufacturers)
+    lists.append(ingredients)
     return lists
 
 # Routes
