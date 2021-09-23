@@ -47,13 +47,16 @@ def get_names():
     js = response.json()
     names = []
     for x in range(len(js)):
-        ingredient = {}
-        ing_code = x
         ing_name = js[x]["ingredient_name"]
+        names.append(ing_name)
+    # This method of de-duplicating a list is based on: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
+    names = list(dict.fromkeys(names))
+    for y in range(len(names)):
+        ingredient = {}
+        ing_code = y
+        ing_name = names[y]
         ingredient = {"name" : ing_name, "code" : ing_code}
-        if ing_name not in names:
-            ingredients.append(ingredient)
-            names.append(ing_name)
+        ingredients.append(ingredient)
     lists.append(ingredients)
     return lists
 
