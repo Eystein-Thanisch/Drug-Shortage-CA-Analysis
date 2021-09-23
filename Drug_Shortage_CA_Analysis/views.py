@@ -45,12 +45,15 @@ def get_names():
     url = "https://health-products.canada.ca/api/drug/activeingredient"
     response = pip._vendor.requests.get(url)
     js = response.json()
+    names = []
     for x in range(len(js)):
         ingredient = {}
         ing_code = x
         ing_name = js[x]["ingredient_name"]
         ingredient = {"name" : ing_name, "code" : ing_code}
-        ingredients.append(ingredient)
+        if ing_name not in names:
+            ingredients.append(ingredient)
+            names.append(ing_name)
     lists.append(ingredients)
     return lists
 
