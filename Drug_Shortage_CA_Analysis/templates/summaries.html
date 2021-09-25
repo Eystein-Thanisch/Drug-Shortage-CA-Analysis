@@ -11,29 +11,31 @@
 </div>
 
 <div class="row">
-    <div id="q1" class="col-md-4">
-        <div id="subjects" class="dropdown">
-            <button class="dropbtn">Subject</button>
-            <div class="dropdown-content">
-                <a class="subj" onclick="search_term({{ lists }}, 0)">Drug</a>
-                <a class="subj" onclick="search_term({{ lists }}, 1)">Manufacturer</a>
-                <a class="subj" onclick="search_term({{ lists }}, 2)">Active Ingredient</a>
+    <form action="/summary" method="post">
+        <div id="q1" class="col-md-4">
+            <div id="subjects" class="dropdown">
+                <button class="dropbtn">Subject</button>
+                <div class="dropdown-content">
+                    <a class="subj" onclick="search_term({{ lists }}, 0)">Drug</a>
+                    <a class="subj" onclick="search_term({{ lists }}, 1)">Manufacturer</a>
+                    <a class="subj" onclick="search_term({{ lists }}, 2)">Active Ingredient</a>
+                </div>
             </div>
         </div>
-    </div>
-    <!-- Source: https://select2.org/getting-started/basic-usage -->
-    <div id="q2" class="col-md-4">
-        <div id="s2_cont" class="container" hidden>
-            <select id="s2" class="js-example-basic-single" name="term">
-                <option></option>
-            </select>
+        <!-- Source: https://select2.org/getting-started/basic-usage -->
+        <div id="q2" class="col-md-4">
+            <div id="s2_cont" class="container" hidden>
+                <select id="s2" class="js-example-basic-single" name="term">
+                    <option></option>
+                </select>
+            </div>
         </div>
-    </div>
-    <div id="q3" class="col-md-4">
-        <div id="sub_cont" class="container" hidden>
-            <button id="submit" class="btn btn-primary">Submit</button>
+        <div id="q3" class="col-md-4">
+            <div id="sub_cont" class="container" hidden>
+                <button id="submit" class="btn btn-primary">Submit</button>
+            </div>
         </div>
-    </div>
+    </form>
 </div>
 
 {% endblock %}

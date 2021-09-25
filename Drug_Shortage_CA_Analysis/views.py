@@ -92,9 +92,11 @@ def about():
         message='Your application description page.'
     )
 
-@app.route('/summary')
+@app.route('/summary', methods=["GET", "POST"])
 def summary():
     if request.method == "POST":
+        term = request.form.get("term")
+        print(term)
         return render_template('to_do.html')
     else:
         lists = get_names()
