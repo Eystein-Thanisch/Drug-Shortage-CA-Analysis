@@ -60,6 +60,14 @@ def get_names():
     lists.append(ingredients)
     return lists
 
+def get_summary(subj, type, term):
+    if subj == 0:
+        print("Drug search: " + term);
+        return
+    elif subj == 1:
+        return
+    elif subj == 2:
+        return
 # Routes
 
 @app.route('/')
@@ -95,8 +103,10 @@ def about():
 @app.route('/summary', methods=["GET", "POST"])
 def summary():
     if request.method == "POST":
+        subj = int(request.form.get("subject"))
+        type = int(request.form.get("type"))
         term = request.form.get("term")
-        print(term)
+        get_summary(subj, type, term);
         return render_template('to_do.html')
     else:
         lists = get_names()

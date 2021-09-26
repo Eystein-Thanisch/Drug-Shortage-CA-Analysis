@@ -12,25 +12,31 @@
 
 <div class="row">
     <form action="/summary" method="post">
-        <div id="q1" class="col-md-4">
-            <div id="subjects" class="dropdown">
-                <button class="dropbtn">Subject</button>
-                <div class="dropdown-content">
-                    <a class="subj" onclick="search_term({{ lists }}, 0)">Drug</a>
-                    <a class="subj" onclick="search_term({{ lists }}, 1)">Manufacturer</a>
-                    <a class="subj" onclick="search_term({{ lists }}, 2)">Active Ingredient</a>
-                </div>
+        <div id="q1" class="col-md-3">
+            <div id="s1a" class="container">
+                <select name="subject" id="subject" onchange="search_term(value)">
+                    <option disabled selected>Search for</option>
+                    <option class="subj" value="0">Drug</option>
+                    <option class="subj" value="1">Manufacturer</option>
+                    <option class="subj" value="2">Active Ingredient</option>
+                </select>
+            </div>
+        </div>
+        <div id="q2" class="col-md-3">
+            <div id="s1b" class="container" hidden>
+                <select name="type" id="searchby" onchange="get_dropdown({{ lists }}, value)">
+                </select>
             </div>
         </div>
         <!-- Source: https://select2.org/getting-started/basic-usage -->
-        <div id="q2" class="col-md-4">
+        <div id="q3" class="col-md-3">
             <div id="s2_cont" class="container" hidden>
                 <select id="s2" class="js-example-basic-single" name="term">
                     <option></option>
                 </select>
             </div>
         </div>
-        <div id="q3" class="col-md-4">
+        <div id="q4" class="col-md-3">
             <div id="sub_cont" class="container" hidden>
                 <button id="submit" class="btn btn-primary">Submit</button>
             </div>
