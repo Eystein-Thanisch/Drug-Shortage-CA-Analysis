@@ -9,6 +9,9 @@ from Drug_Shortage_CA_Analysis import app
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# NB: FIND A MORE SECURE WAY OF ACCESSING THIS BEFORE SUBMISSION!!!
+auth_token = "02597e45864d4229bcb509e6db650f7a"
+
 # Functions
 
 def get_names():
@@ -62,8 +65,60 @@ def get_names():
 
 def get_summary(subj, type, term):
     if subj == 0:
-        print("Drug search: " + term);
-        return
+        data = []
+        dict1 = {}
+        dict2 = {}
+
+        # Drug Details
+        base_url = "https://health-products.canada.ca/api/drug/drugproduct"
+        url = base_url + "/?din=" + term
+        response = pip._vendor.requests.get(url)
+        js = response.json()
+        code = js[0]["drug_code"]
+        dict2["name"] = js[0]["brand_name"]
+        dict2["class"] = js[0]["class_name"]
+        dict2["manufacturer"] = js[0]["company_name"]
+
+        # Active Ingredients
+        base_url = "https://health-products.canada.ca/api/drug/activeingredient"
+        url = base_url + "/?id=" + str(code)
+        response = pip._vendor.requests.get(url)
+        js = response.json()
+        l = len(js)
+        ingredients = []
+        for x in range(l):
+            dict3 = {}
+            ingredient = js[x]["ingredient_name"]
+            dict3["name"] = ingredient
+            ingredients.append(dict3)
+        dict2["ingredients"] = ingredients
+        dict1["drug_details"] = dict2
+
+        # Current Status
+        dict2 = {}
+        base_url = "https://health-products.canada.ca/api/drug/status"
+        url = base_url + "/?id=" + str(code)
+        response = pip._vendor.requests.get(url)
+        js = response.json()
+        dict2["status"] = js["status"]
+        dict2["since"] = js["history_date"]
+        dict2["marketed"] = js["original_market_date"]
+        dict1["drug_status"] = dict2
+
+        # Shortage History
+        dict2 = {}
+        base_url = "https://www.drugshortagescanada.ca/api/v1"
+        url = base_url + "/search?din=" + term
+        header = {"auth-token" : auth_token}
+        response = pip._vendor.requests.get(url, headers = header)
+        js = response.json()
+        if js["total"] == 0:
+            dict2["shortages"] = 0
+        else:
+            dict2["shortages"] = 1
+        dict1["shortage_info"] = dict2
+        data.append(dict1)
+        return data
     elif subj == 1:
         return
     elif subj == 2:
@@ -103,11 +158,19 @@ def about():
 @app.route('/summary', methods=["GET", "POST"])
 def summary():
     if request.method == "POST":
+        lists = []
+        query = {}
         subj = int(request.form.get("subject"))
         type = int(request.form.get("type"))
         term = request.form.get("term")
-        get_summary(subj, type, term);
-        return render_template('to_do.html')
+        query["subj"] = int(request.form.get("subject"))
+        query["type"] = int(request.form.get("type"))
+        query["term"] = request.form.get("term")
+        lists.append(query)
+        response = get_summary(subj, type, term)
+        lists.append(response)
+        print(lists)
+        return render_template('summarized.html', lists=lists)
     else:
         lists = get_names()
         return render_template('summaries.html', lists=lists)

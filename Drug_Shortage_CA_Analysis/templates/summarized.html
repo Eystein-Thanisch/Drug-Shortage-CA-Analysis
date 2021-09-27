@@ -1,0 +1,120 @@
+﻿{% extends "layout.html" %}
+
+{% block javascript %}
+<script src="/static/scripts/my_scripts.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <h1>Summary Reports</h1>
+</div>
+
+<div class="row">
+    <form action="/summary" method="post">
+        <div id="q1" class="col-md-3">
+            <div id="s1a" class="container">
+                <select name="subject" id="subject" onchange="search_term(value)">
+                    <option disabled selected>Search for</option>
+                    <option class="subj" value="0">Drug</option>
+                    <option class="subj" value="1">Manufacturer</option>
+                    <option class="subj" value="2">Active Ingredient</option>
+                </select>
+            </div>
+        </div>
+        <div id="q2" class="col-md-3">
+            <div id="s1b" class="container" hidden>
+                <select name="type" id="searchby" onchange="get_dropdown({{ lists }}, value)">
+                </select>
+            </div>
+        </div>
+        <!-- Source: https://select2.org/getting-started/basic-usage -->
+        <div id="q3" class="col-md-3">
+            <div id="s2_cont" class="container" hidden>
+                <select id="s2" class="js-example-basic-single" name="term">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+        <div id="q4" class="col-md-3">
+            <div id="sub_cont" class="container" hidden>
+                <button id="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </form>
+</div>
+<hr/>
+<div class="row">
+    <div id="results" class="col-md-12">
+        {% if lists[0]["subj"] == 0 %}
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            Drug Name
+                        </th>
+                        <td>
+                            {{ lists[1][0]["drug_details"]["name"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Drug Class
+                        </th>
+                        <td>
+                            {{ lists[1][0]["drug_details"]["class"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Manufacturer
+                        </th>
+                        <td>
+                            {{ lists[1][0]["drug_details"]["manufacturer"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Status
+                        </th>
+                        <td>
+                            {{ lists[1][0]["drug_status"]["status"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Status Since
+                        </th>
+                        <td>
+                            {{ lists[1][0]["drug_status"]["since"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            First Marketed
+                        </th>
+                        <td>
+                            {{ lists[1][0]["drug_status"]["marketed"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Ingredients
+                        </th>
+                        <td>
+                            {% for ing in lists[1][0]["drug_details"]["ingredients"] %}
+                                {{ ing["name"] }}
+                                <br/>
+                            {% endfor %}
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        {% else %}
+            <p>Error! Results not found</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
