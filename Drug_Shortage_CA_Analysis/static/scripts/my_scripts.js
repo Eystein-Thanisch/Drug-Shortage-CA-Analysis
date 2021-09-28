@@ -100,11 +100,22 @@ function populate_dropdowns(lists, n, c) {
         var opt = document.createElement("OPTION");
         if (n != 2) {
             opt.setAttribute("value", list[i]["code"]);
-            if (c == 0) {
-                opt.innerHTML = list[i]["name"];
+            if (n == 0) {
+                if (c == 0) {
+                    var name = list[i]["name"];
+                    opt.innerHTML = name.concat(" [", list[i]["manufacturer"], "]");
+                }
+                else {
+                    opt.innerHTML = list[i]["code"];
+                }
             }
             else {
-                opt.innerHTML = list[i]["code"];
+                if (c == 0) {
+                    opt.innerHTML = list[i]["name"];
+                }
+                else {
+                    opt.innerHTML = list[i]["code"];
+                }
             }
         }
         else {
