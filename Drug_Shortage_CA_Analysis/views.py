@@ -196,13 +196,64 @@ def get_summary(subj, type, term):
         reports = response.json()
         active = reports["total"]
         dict2["report_count"] = resolved + active
+        dict2["active_reports"] = active
 
         dict1["drugs_marketed"] = dict2
         data.append(dict1)
 
         return data
     elif subj == 2:
-        return
+        data = []
+        dict1 = {}
+        dict2 = {}
+
+        # Ingredient Details
+        name = term
+        dict2["name"] = name
+
+        base_url = "https://health-products.canada.ca/api/drug/activeingredient"
+        url = base_url + "/?ingredientname=" + term
+        response = pip._vendor.requests.get(url)
+        js = response.json()
+        counter = 0
+        drugs = []
+        for x in range(len(js)):
+           counter = counter + 1
+           drug_code = js[x]["drug_code"]
+           drugs.append(drug_code)
+        dict2["drug_count"] = counter
+        manufacturers = []
+        for x in range(len(drugs)):
+            code = drugs[x]
+            base_url = "https://health-products.canada.ca/api/drug/drugproduct"
+            url = base_url + "/?id=" + str(code)
+            response = pip._vendor.requests.get(url)
+            js = response.json()
+            manufacturer = js["company_name"]
+            if manufacturer not in manufacturers:
+                manufacturers.append(manufacturer)
+        dict2["manufacturer_count"] = len(manufacturers)
+        dict1["ingredient_details"] = dict2
+
+        # Shortage Details
+        dict2 = {}
+        base_url = "https://www.drugshortagescanada.ca/api/v1"
+        url = base_url + "/search?orderby=updated_date&order=desc&filter_status=resolved&term=" + name
+        header = {"auth-token" : auth_token}
+        response = pip._vendor.requests.get(url, headers = header)
+        reports = response.json()
+        resolved = reports["total"]
+        url = base_url + "/search?orderby=updated_date&order=desc&filter_status=active_confirmed&term=" + name
+        response = pip._vendor.requests.get(url, headers = header)
+        reports = response.json()
+        active = reports["total"]
+        dict2["report_count"] = resolved + active
+        dict2["active_reports"] = active
+        dict1["shortage_details"] = dict2
+
+        data.append(dict1)
+
+        return data
 # Routes
 
 @app.route('/')

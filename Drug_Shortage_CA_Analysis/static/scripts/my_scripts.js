@@ -17,6 +17,8 @@ function search_term(n) {
     sby.innerHTML = "";
     var s2 = document.querySelector("#s2");
     s2.innerHTML = "";
+    var s2_cont = document.querySelector("#s2_cont");
+    s2_cont.hidden = true;
     var ph = document.createElement("OPTION");
     ph.disabled = true;
     ph.selected = true;
@@ -33,6 +35,7 @@ function search_term(n) {
         t2.setAttribute("value", 1);
         t2.innerHTML = "DIN";
         sby.appendChild(t2);
+        document.querySelector("#warning").hidden = true;
     }
     else if (n == 1) {
         var t1 = document.createElement("OPTION");
@@ -45,6 +48,7 @@ function search_term(n) {
         t2.setAttribute("value", 1);
         t2.innerHTML = "Code";
         sby.appendChild(t2);
+        document.querySelector("#warning").hidden = true;
     }
     else if (n == 2) {
         var t1 = document.createElement("OPTION");
@@ -52,6 +56,7 @@ function search_term(n) {
         t1.setAttribute("value", 0);
         t1.innerHTML = "Name";
         sby.appendChild(t1);
+        document.querySelector("#warning").hidden = false;
     }
     else {
         alert("Please choose an item from the list!");
@@ -123,8 +128,8 @@ function populate_dropdowns(lists, n, c) {
             opt.innerHTML = list[i]["name"];
         }
         s2.appendChild(opt);
-        var s2_cont = document.querySelector("#s2_cont");
-        s2_cont.hidden = false;
     }
+    var s2_cont = document.querySelector("#s2_cont");
+    s2_cont.hidden = false;
     return;
 }

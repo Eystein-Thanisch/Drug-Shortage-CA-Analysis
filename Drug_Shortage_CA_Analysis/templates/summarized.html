@@ -266,6 +266,59 @@
                             {{ lists[1][0]["drugs_marketed"]["report_count"] }}
                         </td>
                     </tr>
+                    <tr>
+                        <th scope="row">
+                            Of Which Active
+                        </th>
+                        <td>
+                            {{ lists[1][0]["drugs_marketed"]["active_reports"] }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        {% elif lists[0]["subj"] == 2 %}
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            Ingredient Name
+                        </th>
+                        <td>
+                            {{ lists[1][0]["ingredient_details"]["name"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Drug Count
+                        </th>
+                        <td>
+                            {{ lists[1][0]["ingredient_details"]["drug_count"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Manufacturer Count
+                        </th>
+                        <td>
+                            {{ lists[1][0]["ingredient_details"]["manufacturer_count"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Shortage Reports Mentioning "{{ lists[1][0]["ingredient_details"]["name"] }}"
+                        </th>
+                        <td>
+                            {{ lists[1][0]["shortage_details"]["report_count"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Active Shortage Reports Mentioning "{{ lists[1][0]["ingredient_details"]["name"] }}"
+                        </th>
+                        <td>
+                            {{ lists[1][0]["shortage_details"]["active_reports"] }}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         {% else %}
