@@ -1,10 +1,10 @@
-import sqlite3
 import json
-import pip._vendor.requests
+import requests
 import os.path
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask import render_template, request
+from pyvis.network import Network
 from Drug_Shortage_CA_Analysis import app
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +20,7 @@ def get_names():
     #Drugs
     drugs = []
     url = "https://health-products.canada.ca/api/drug/drugproduct"
-    response = pip._vendor.requests.get(url)
+    response = requests.get(url)
     js = response.json()
     for x in range(len(js)):
         drug = {}
@@ -34,7 +34,7 @@ def get_names():
     #Manufacturers
     manufacturers = []
     url = "https://health-products.canada.ca/api/drug/company"
-    response = pip._vendor.requests.get(url)
+    response = requests.get(url)
     js = response.json()
     for x in range(len(js)):
         manufacturer = {}
@@ -47,7 +47,7 @@ def get_names():
     #Ingredients
     ingredients = []
     url = "https://health-products.canada.ca/api/drug/activeingredient"
-    response = pip._vendor.requests.get(url)
+    response = requests.get(url)
     js = response.json()
     names = []
     for x in range(len(js)):
@@ -73,7 +73,7 @@ def get_summary(subj, type, term):
         # Drug Details
         base_url = "https://health-products.canada.ca/api/drug/drugproduct"
         url = base_url + "/?din=" + term
-        response = pip._vendor.requests.get(url)
+        response = requests.get(url)
         js = response.json()
         code = js[0]["drug_code"]
         dict2["name"] = js[0]["brand_name"]
@@ -83,7 +83,7 @@ def get_summary(subj, type, term):
         # Active Ingredients
         base_url = "https://health-products.canada.ca/api/drug/activeingredient"
         url = base_url + "/?id=" + str(code)
-        response = pip._vendor.requests.get(url)
+        response = requests.get(url)
         js = response.json()
         l = len(js)
         ingredients = []
@@ -99,7 +99,7 @@ def get_summary(subj, type, term):
         dict2 = {}
         base_url = "https://health-products.canada.ca/api/drug/status"
         url = base_url + "/?id=" + str(code)
-        response = pip._vendor.requests.get(url)
+        response = requests.get(url)
         js = response.json()
         dict2["status"] = js["status"]
         dict2["since"] = js["history_date"]
@@ -111,7 +111,7 @@ def get_summary(subj, type, term):
         base_url = "https://www.drugshortagescanada.ca/api/v1"
         url = base_url + "/search?din=" + term + "&orderby=updated_date&order=desc"
         header = {"auth-token" : auth_token}
-        response = pip._vendor.requests.get(url, headers = header)
+        response = requests.get(url, headers = header)
         reports = response.json()
         in_shortage = False
         if reports["total"] == 0:
@@ -147,7 +147,7 @@ def get_summary(subj, type, term):
         
         # Total Shortages
         url = base_url + "/search?din=" + term + "&orderby=updated_date&order=desc&filter_status=resolved"    
-        response = pip._vendor.requests.get(url, headers = header)
+        response = requests.get(url, headers = header)
         shortages = response.json()
         if in_shortage:
             dict2["total_shortages"] = shortages["total"] + 1
@@ -166,7 +166,7 @@ def get_summary(subj, type, term):
         # Company Details
         base_url = "https://health-products.canada.ca/api/drug/company"
         url = base_url + "/?id=" + term
-        response = pip._vendor.requests.get(url)
+        response = requests.get(url)
         js = response.json()
         name = js["company_name"]
         dict2["name"] = name
@@ -178,7 +178,7 @@ def get_summary(subj, type, term):
         # Drugs Marketed
         dict2 = {}
         url = "https://health-products.canada.ca/api/drug/drugproduct"
-        response = pip._vendor.requests.get(url)
+        response = requests.get(url)
         js = response.json()
         counter = 0
         for x in range(len(js)):
@@ -188,11 +188,11 @@ def get_summary(subj, type, term):
         base_url = "https://www.drugshortagescanada.ca/api/v1"
         url = base_url + "/search?orderby=updated_date&order=desc&filter_status=resolved&term=" + name
         header = {"auth-token" : auth_token}
-        response = pip._vendor.requests.get(url, headers = header)
+        response = requests.get(url, headers = header)
         reports = response.json()
         resolved = reports["total"]
         url = base_url + "/search?orderby=updated_date&order=desc&filter_status=active_confirmed&term=" + name
-        response = pip._vendor.requests.get(url, headers = header)
+        response = requests.get(url, headers = header)
         reports = response.json()
         active = reports["total"]
         dict2["report_count"] = resolved + active
@@ -213,7 +213,7 @@ def get_summary(subj, type, term):
 
         base_url = "https://health-products.canada.ca/api/drug/activeingredient"
         url = base_url + "/?ingredientname=" + term
-        response = pip._vendor.requests.get(url)
+        response = requests.get(url)
         js = response.json()
         counter = 0
         drugs = []
@@ -227,7 +227,7 @@ def get_summary(subj, type, term):
             code = drugs[x]
             base_url = "https://health-products.canada.ca/api/drug/drugproduct"
             url = base_url + "/?id=" + str(code)
-            response = pip._vendor.requests.get(url)
+            response = requests.get(url)
             js = response.json()
             manufacturer = js["company_name"]
             if manufacturer not in manufacturers:
@@ -240,11 +240,11 @@ def get_summary(subj, type, term):
         base_url = "https://www.drugshortagescanada.ca/api/v1"
         url = base_url + "/search?orderby=updated_date&order=desc&filter_status=resolved&term=" + name
         header = {"auth-token" : auth_token}
-        response = pip._vendor.requests.get(url, headers = header)
+        response = requests.get(url, headers = header)
         reports = response.json()
         resolved = reports["total"]
         url = base_url + "/search?orderby=updated_date&order=desc&filter_status=active_confirmed&term=" + name
-        response = pip._vendor.requests.get(url, headers = header)
+        response = requests.get(url, headers = header)
         reports = response.json()
         active = reports["total"]
         dict2["report_count"] = resolved + active
@@ -254,17 +254,77 @@ def get_summary(subj, type, term):
         data.append(dict1)
 
         return data
-# Routes
 
+def get_updates():
+    data = []
+    base_url = "https://www.drugshortagescanada.ca/api/v1"
+    url = base_url + "/search?orderby=updated_date&order=desc&limit=20"
+    header = {"auth-token" : auth_token}
+    response = requests.get(url, headers = header)
+    js = response.json()
+    reports = js["data"]
+    for x in range(20):
+        dict = {}
+        dict["id"] = reports[x]["id"]
+        dict["url"] = "https://www.drugshortagescanada.ca/shortage/" + str(reports[x]["id"])
+        dict["date"] = reports[x]["updated_date"]
+        dict["event"] = reports[x]["status"]
+        dict["drug"] = reports[x]["drug"]["brand_name"]
+        dict["din"] = reports[x]["drug"]["din"]
+        dict["company"] = reports[x]["drug"]["company"]["name"]
+        dict["code"] = reports[x]["drug"]["company"]["company_code"]
+        data.append(dict)
+    return data
+
+def get_graph(id):
+    # Get Report Data
+    base_url = "https://www.drugshortagescanada.ca/api/v1/shortages/"
+    url = base_url + str(id)
+    header = {"auth-token" : auth_token}
+    response = requests.get(url, headers = header)
+    report = response.json()
+    drug = report["drug"]["drug_code"]
+    company = report["drug"]["company"]["company_code"]
+    ingredients = []
+    l = len(report["drug"]["drug_ingredients"])
+    for x in range(l):
+        name = report["drug"]["drug_ingredients"][x]["ingredient"]["en_name"]
+        code = report["drug"]["drug_ingredients"][x]["ingredient"]["ingredient_code"]
+        ingredients.append(code)
+
+    # Build Network
+    net = Network()
+    nodes = []
+    nodes.append(drug)
+    nodes.append(company)
+    for key in ingredients:
+        nodes.append(key)
+    net.add_nodes(nodes)
+    net.add_edge(company, drug)
+    for key in ingredients:
+        net.add_edge(drug, key)
+    net.show('mygraph.html')
+    return
+
+# Routes
 @app.route('/')
 @app.route('/home')
 def home():
     """Renders the home page."""
+    lists = get_updates()
+    print(lists)
     return render_template(
-        'index.html',
+        'index.html', lists = lists,
         title='Home Page',
         year=datetime.now().year,
     )
+
+@app.route('/visualize', methods=["GET", "POST"])
+def visualize():
+    if request.method == "POST":
+        id = request.form.get("submit")
+        get_graph(id)
+        render_template('visualized.html')
 
 @app.route('/contact')
 def contact():

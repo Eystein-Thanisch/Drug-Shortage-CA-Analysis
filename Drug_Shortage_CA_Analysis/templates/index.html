@@ -27,5 +27,76 @@
         <p><a class="btn btn-default" href="">Start query &raquo;</a></p>
     </div>
 </div>
+<div class="row">
+    <div class="col-md-12">
+        <h1>Dashboard</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">
+                        Report
+                    </th>
+                    <th scope="col">
+                        Datetime
+                    </th>
+                    <th scope="col">
+                        Event
+                    </th>
+                    <th scope="col">
+                        Product
+                    </th>
+                    <th scope="col">
+                        DIN
+                    </th>
+                    <th scope="col">
+                        Company
+                    </th>
+                    <th scope="col">
+                        Code
+                    </th>
+                    <th scope="col">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in lists %}
+                    <tr>
+                        <td>
+                            <a href="{{ item["url"] }}" target="_blank"> {{ item["id"] }} </a>
+                        </td>
+                        <td>
+                            {{ item["date"] }}
+                        </td>
+                        <td>
+                            {{ item["event"] }}
+                        </td>
+                        <td>
+                            {{ item["drug"] }}
+                        </td>
+                        <td>
+                            {{ item["din"] }}
+                        </td>
+                        <td>
+                            {{ item["company"] }}
+                        </td>
+                        <td>
+                            {{ item["code"] }}
+                        </td>
+                        <td>
+                            <form action="/visualize" method="post">
+                                <button id="submit" name="submit" class="btn btn-primary" value="{{ item["id"] }}">Visualize</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% endblock %}
