@@ -1,6 +1,7 @@
 import json
 import requests
 import os.path
+import helpers
 
 from datetime import datetime
 from flask import render_template, request
@@ -276,36 +277,6 @@ def get_updates():
         data.append(dict)
     return data
 
-def get_graph(id):
-    # Get Report Data
-    base_url = "https://www.drugshortagescanada.ca/api/v1/shortages/"
-    url = base_url + str(id)
-    header = {"auth-token" : auth_token}
-    response = requests.get(url, headers = header)
-    report = response.json()
-    drug = report["drug"]["drug_code"]
-    company = report["drug"]["company"]["company_code"]
-    ingredients = []
-    l = len(report["drug"]["drug_ingredients"])
-    for x in range(l):
-        name = report["drug"]["drug_ingredients"][x]["ingredient"]["en_name"]
-        code = report["drug"]["drug_ingredients"][x]["ingredient"]["ingredient_code"]
-        ingredients.append(code)
-
-    # Build Network
-    net = Network()
-    nodes = []
-    nodes.append(drug)
-    nodes.append(company)
-    for key in ingredients:
-        nodes.append(key)
-    net.add_nodes(nodes)
-    net.add_edge(company, drug)
-    for key in ingredients:
-        net.add_edge(drug, key)
-    net.show('mygraph.html')
-    return
-
 # Routes
 @app.route('/')
 @app.route('/home')
@@ -324,7 +295,7 @@ def visualize():
     if request.method == "POST":
         id = request.form.get("submit")
         get_graph(id)
-        render_template('visualized.html')
+        render_template('to_do.html')
 
 @app.route('/contact')
 def contact():
