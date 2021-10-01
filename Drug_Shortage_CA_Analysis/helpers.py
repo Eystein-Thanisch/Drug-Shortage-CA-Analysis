@@ -1,14 +1,7 @@
 import json
 import requests
-import os.path
-import sqlite3
-
 from datetime import datetime
-from flask import render_template, request
 from pyvis.network import Network
-from Drug_Shortage_CA_Analysis import app
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # NB: FIND A MORE SECURE WAY OF ACCESSING THIS BEFORE SUBMISSION!!!
 auth_token = "02597e45864d4229bcb509e6db650f7a"
@@ -294,74 +287,32 @@ def get_graph(id):
 
     # Build Initial Network
     net = Network()
-    net.add_node(drug, label = drug_name, color = "#dd4b39", shape = "ellipse")
-    net.add_node(company, label = company_name, color = "#dd4b39", shape = "square")
+    net.add_node(drug, label = drug_name)
+    net.add_node(company, label = company_name)
     l = len(ingredients)
     for x in range(l):
-        net.add_node(ingredients[x], label = ingredients[x], color = "#dd4b39", shape = "triangle")
+        net.add_node(ingredients[x], label = ingredients[x])
     net.add_edge(company, drug)
     for x in range(l):
         net.add_edge(drug, ingredients[x])
-    os.chdir("C:\\Files\\Drug-Shortage-CA-Analysis\\Drug_Shortage_CA_Analysis\\templates")
-    net.save_graph('mygraph.html')
-    os.chdir(BASE_DIR)
+    net.show('mygraph.html')
     return
-
-# Routes
-@app.route('/')
-@app.route('/home')
-def home():
-    """Renders the home page."""
-    lists = get_updates()
-    return render_template(
-        'index.html', lists = lists,
-        title='Home Page',
-        year=datetime.now().year,
-    )
-
-@app.route('/visualize', methods=["GET", "POST"])
-def visualize():
-    if request.method == "POST":
-        id = request.form.get("submit")
-        get_graph(id)
-        return render_template('mygraph.html')
-
-@app.route('/contact')
-def contact():
-    """Renders the contact page."""
-    return render_template(
-        'contact.html',
-        title='Contact',
-        year=datetime.now().year,
-        message='Your contact page.'
-    )
-
-@app.route('/about')
-def about():
-    """Renders the about page."""
-    return render_template(
-        'about.html',
-        title='About',
-        year=datetime.now().year,
-        message='Your application description page.'
-    )
-
-@app.route('/summary', methods=["GET", "POST"])
-def summary():
-    if request.method == "POST":
-        lists = []
-        query = {}
-        subj = int(request.form.get("subject"))
-        type = int(request.form.get("type"))
-        term = request.form.get("term")
-        query["subj"] = int(request.form.get("subject"))
-        query["type"] = int(request.form.get("type"))
-        query["term"] = request.form.get("term")
-        lists.append(query)
-        response = get_summary(subj, type, term)
-        lists.append(response)
-        print(lists)
-        return render_template('summarized.html', lists=lists)
-    else:
-        lists = get_names()
-        return render_template('summaries.html', lists=lists)
+    
+    # Ingredient Links
+    drugs = []
+    for x in range(l):
+        base_url = "https://health-products.canada.ca/api/drug/activeingredient"
+        url = base_url + "/?ingredientname=" + ingredients[x]
+        response = requests.get(url)
+        js = response.json()
+        hits = len(js)
+        for y in range(hits):
+            drugs.append(hits[y]["drug_code"])
+    for drug in drugs:
+        base_url = "https://health-products.canada.ca/api/drug/drugproduct"
+        url = base_url + "/drugproduct/?id=" + drug
+        response = requests.get(url)
+        js = response.json()
+        name = js["brand_name"]
+        company = js["company_name"]
+        net.add_node(drug, label = name)
