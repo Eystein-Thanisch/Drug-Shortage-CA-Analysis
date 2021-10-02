@@ -311,7 +311,7 @@ def get_graph(id):
 
 def get_graph_all():
     # Create network
-    net = Network()
+    net = Network("1000px", "1000px")
     # Get report data
     base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=active_confirmed&limit=50"
     header = {"auth-token" : auth_token}
@@ -332,6 +332,7 @@ def get_graph_all():
                 drug = report["drug"]["din"]
             company_name = report["drug"]["company"]["name"]
             company = report["drug"]["company"]["company_code"]
+            reason = report["shortage_reason"]["en_reason"]
             ingredients = []
             l = len(report["drug"]["drug_ingredients"])
             for x in range(l):
@@ -339,14 +340,14 @@ def get_graph_all():
                     name = report["drug"]["drug_ingredients"][x]["ingredient"]["en_name"]
                     ingredients.append(name)
                 except:
-                    name = str(report["drug"]["drug_ingredients"][x]["ingredient"]["ingredient_code"])
-                    ingredients.append(name)
-            net.add_node(drug, label = drug_name, color = "#dd4b39", shape = "ellipse")
-            net.add_node(company, label = company_name, color = "#dd4b39", shape = "square")
+                   name = str(report["drug"]["drug_ingredients"][x]["ingredient"]["ingredient_code"])
+                   ingredients.append(name)
+            net.add_node(drug, label = drug_name, title = reason, color = "#ddaafa", shape = "circle")
+            net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
             l = len(ingredients)
             for x in range(l):
-                net.add_node(ingredients[x], label = ingredients[x], color = "#dd4b39", shape = "triangle")
-                net.add_edge(company, drug)
+                net.add_node(ingredients[x], label = ingredients[x], color = "#cf538a", shape = "triangle")
+            net.add_edge(company, drug)
             for x in range(l):
                 net.add_edge(drug, ingredients[x])
         o = o + 50
