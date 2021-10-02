@@ -302,8 +302,58 @@ def get_graph(id):
     net.add_edge(company, drug)
     for x in range(l):
         net.add_edge(drug, ingredients[x])
-    os.chdir("C:\\Files\\Drug-Shortage-CA-Analysis\\Drug_Shortage_CA_Analysis\\templates")
-    net.save_graph('mygraph.html')
+
+    # Save Visualized Network Graph
+    os.chdir(BASE_DIR + "\\templates")
+    net.save_graph('report_graph.html')
+    os.chdir(BASE_DIR)
+    return
+
+def get_graph_all():
+    # Create network
+    net = Network()
+    # Get report data
+    base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=active_confirmed&limit=50"
+    header = {"auth-token" : auth_token}
+    response = requests.get(base_url, headers = header)
+    reports = response.json()
+    p = reports["total_pages"]
+    o = 0
+    for x in range(p):
+        url = base_url + "&offset=" + str(o)
+        response = requests.get(url, headers = header)
+        reports = response.json()
+        data = reports["data"]
+        for report in data:
+            drug_name = report["drug"]["brand_name"]
+            try:
+                drug = report["drug"]["drug_code"]
+            except:
+                drug = report["drug"]["din"]
+            company_name = report["drug"]["company"]["name"]
+            company = report["drug"]["company"]["company_code"]
+            ingredients = []
+            l = len(report["drug"]["drug_ingredients"])
+            for x in range(l):
+                try:
+                    name = report["drug"]["drug_ingredients"][x]["ingredient"]["en_name"]
+                    ingredients.append(name)
+                except:
+                    name = str(report["drug"]["drug_ingredients"][x]["ingredient"]["ingredient_code"])
+                    ingredients.append(name)
+            net.add_node(drug, label = drug_name, color = "#dd4b39", shape = "ellipse")
+            net.add_node(company, label = company_name, color = "#dd4b39", shape = "square")
+            l = len(ingredients)
+            for x in range(l):
+                net.add_node(ingredients[x], label = ingredients[x], color = "#dd4b39", shape = "triangle")
+                net.add_edge(company, drug)
+            for x in range(l):
+                net.add_edge(drug, ingredients[x])
+        o = o + 50
+    # Save Visualized Network Graph
+    os.chdir(BASE_DIR + "\\templates")
+    net.show_buttons(filter_=['physics'])
+    net.save_graph('shortages_graphs.html')
     os.chdir(BASE_DIR)
     return
 
@@ -324,7 +374,13 @@ def visualize():
     if request.method == "POST":
         id = request.form.get("submit")
         get_graph(id)
-        return render_template('mygraph.html')
+        return render_template('report_graph.html')
+
+@app.route('/visualize_all', methods=["GET", "POST"])
+def visualize_all():
+    if request.method == "GET":
+        get_graph_all()
+        return render_template('shortages_graphs.html')
 
 @app.route('/contact')
 def contact():
