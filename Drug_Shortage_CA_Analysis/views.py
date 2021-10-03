@@ -4,7 +4,7 @@ import os.path
 import sqlite3
 
 from datetime import datetime
-from flask import render_template, request
+from flask import render_template, request, send_file
 from pyvis.network import Network
 from Drug_Shortage_CA_Analysis import app
 
@@ -294,18 +294,35 @@ def get_graph(id):
 
     # Build Initial Network
     net = Network()
-    net.add_node(drug, label = drug_name, color = "#dd4b39", shape = "ellipse")
-    net.add_node(company, label = company_name, color = "#dd4b39", shape = "square")
+    net.add_node(drug, label = drug_name, color = "#ddaafa", shape = "diamond")
+    net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
     l = len(ingredients)
     for x in range(l):
-        net.add_node(ingredients[x], label = ingredients[x], color = "#dd4b39", shape = "triangle")
+        net.add_node(ingredients[x], label = ingredients[x], color = "#cf538a", shape = "triangle")
     net.add_edge(company, drug)
     for x in range(l):
         net.add_edge(drug, ingredients[x])
+    
+    # Ingredient links
+    for x in range(l):
+        base_url = "https://health-products.canada.ca/api/drug/activeingredient"
+        url = base_url + "/?ingredientname=" + ingredients[x]
+        response = requests.get(url)
+        ings = response.json()
+        for y in ings:
+            drug = y["drug_code"]
+            base_url = "https://health-products.canada.ca/api/drug/drugproduct"
+            url = base_url + "/?id=" + str(drug)
+            response = requests.get(url)
+            drug_data = response.json()
+            drug_name = drug_data["brand_name"]
+            net.add_node(drug, label = drug_name, color = "#ddaafa", shape = "diamond")
+            net.add_edge(drug, ingredients[x])
 
     # Save Visualized Network Graph
     os.chdir(BASE_DIR + "\\templates")
-    net.save_graph('report_graph.html')
+    net.show_buttons(filter_=['physics'])
+    net.save_graph('shortages_graph.html')
     os.chdir(BASE_DIR)
     return
 
@@ -342,7 +359,7 @@ def get_graph_all():
                 except:
                    name = str(report["drug"]["drug_ingredients"][x]["ingredient"]["ingredient_code"])
                    ingredients.append(name)
-            net.add_node(drug, label = drug_name, title = reason, color = "#ddaafa", shape = "circle")
+            net.add_node(drug, label = drug_name, title = reason, color = "#ddaafa", shape = "diamond")
             net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
             l = len(ingredients)
             for x in range(l):
@@ -354,7 +371,7 @@ def get_graph_all():
     # Save Visualized Network Graph
     os.chdir(BASE_DIR + "\\templates")
     net.show_buttons(filter_=['physics'])
-    net.save_graph('shortages_graphs.html')
+    net.save_graph('shortages_graph.html')
     os.chdir(BASE_DIR)
     return
 
@@ -375,13 +392,13 @@ def visualize():
     if request.method == "POST":
         id = request.form.get("submit")
         get_graph(id)
-        return render_template('report_graph.html')
+        return render_template('visualized.html')
 
 @app.route('/visualize_all', methods=["GET", "POST"])
 def visualize_all():
-    if request.method == "GET":
+    if request.method == "POST":
         get_graph_all()
-        return render_template('shortages_graphs.html')
+        return render_template('visualized.html')
 
 @app.route('/contact')
 def contact():
