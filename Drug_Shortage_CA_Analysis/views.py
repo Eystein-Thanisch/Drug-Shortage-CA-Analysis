@@ -13,6 +13,71 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # NB: FIND A MORE SECURE WAY OF ACCESSING THIS BEFORE SUBMISSION!!!
 auth_token = "02597e45864d4229bcb509e6db650f7a"
 
+def update_database():
+   con = sqlite3.connect("Drug_Shortage_CA_Analysis\data\dpd_codes.db")
+   cur = con.cursor()
+
+   # Companies
+   url = "https://health-products.canada.ca/api/drug/company"
+   response = requests.get(url)
+   company_data = response.json()
+   codes = []
+   for datum in company_data:
+       code = datum["company_code"]
+       cur.execute("SELECT * FROM companies WHERE company_code = ?", (code,))
+       if len(cur.fetchall()) > 0:
+           continue
+       if code in codes:
+           continue
+       else:
+           codes.append(code)
+           values = (datum["company_code"], datum["company_name"])
+           cur.execute("INSERT INTO companies (company_code, company_name) VALUES(?, ?)", values)
+   con.commit()
+
+   # Drugs
+   url = "https://health-products.canada.ca/api/drug/drugproduct"
+   response = requests.get(url)
+   drug_data = response.json()
+   codes = []
+   for datum in drug_data:
+       code = datum["drug_code"]
+       cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (code,))
+       if len(cur.fetchall()) > 0:
+           continue
+       if code in codes:
+           continue
+       else:
+           codes.append(code)
+           owner = datum["company_name"]
+           cur.execute("SELECT company_code FROM companies WHERE company_name = ?", (owner,))
+           ccode_data = cur.fetchall()
+           ccode = ccode_data[0][0]
+           values = (datum["drug_code"], datum["brand_name"], ccode)
+           cur.execute("INSERT INTO drugs (drug_code, drug_name, owner) VALUES(?, ?, ?)", values)
+   con.commit()
+
+   # Ingredients
+   url = "https://health-products.canada.ca/api/drug/activeingredient"
+   response = requests.get(url)
+   ing_data = response.json()
+   names = []
+   for datum in ing_data:
+       name = datum["ingredient_name"]
+       cur.execute("SELECT * FROM ingredients WHERE ingredient_name = ?", (name,))
+       if len(cur.fetchall()) > 0:
+           continue
+       if name in names:
+           continue
+       else:
+           names.append(name)
+           used_in = datum["drug_code"]
+           values = (name, used_in)
+           cur.execute("INSERT INTO ingredients (ingredient_name, used_in) VALUES(?, ?)", values)
+   con.commit()
+   con.close
+   return
+
 def get_names():
     lists = []
 
@@ -381,6 +446,7 @@ def get_graph_all():
 def home():
     """Renders the home page."""
     lists = get_updates()
+    update_database()
     return render_template(
         'index.html', lists = lists,
         title='Home Page',
