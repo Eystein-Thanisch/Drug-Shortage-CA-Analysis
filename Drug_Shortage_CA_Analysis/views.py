@@ -58,22 +58,21 @@ def update_database():
    con.commit()
 
    # Ingredients
+   cur.execute("DELETE FROM ingredients")
    url = "https://health-products.canada.ca/api/drug/activeingredient"
    response = requests.get(url)
    ing_data = response.json()
-   names = []
+   values = []
    for datum in ing_data:
        name = datum["ingredient_name"]
-       cur.execute("SELECT * FROM ingredients WHERE ingredient_name = ?", (name,))
-       if len(cur.fetchall()) > 0:
-           continue
-       if name in names:
-           continue
-       else:
-           names.append(name)
-           used_in = datum["drug_code"]
-           values = (name, used_in)
-           cur.execute("INSERT INTO ingredients (ingredient_name, used_in) VALUES(?, ?)", values)
+       used_in = datum["drug_code"]
+       details = (name, used_in)
+       #cur.execute("SELECT * FROM ingredients WHERE ingredient_name = ? AND used_in = ?", details)
+       #if len(cur.fetchall()) > 0:
+       #    continue
+       #else:
+       values.append(details)
+   cur.executemany("INSERT INTO ingredients (ingredient_name, used_in) VALUES(?, ?)", values)
    con.commit()
 
    # Shortages
@@ -90,7 +89,13 @@ def update_database():
        data = reports["data"]
        for report in data:
            report_id = report["id"]
-           drug_code = report["drug"]["drug_code"]
+           drug_code = 0
+           try:
+               drug_code = report["drug"]["drug_code"]
+           except:
+               drug_code = report["drug"]["din"]
+           finally:
+               drug_code = 0
            company_code = report["drug"]["company"]["company_code"]
            reason = report["shortage_reason"]["en_reason"]
            started = ""
@@ -102,6 +107,7 @@ def update_database():
                started = "nd"
            values = (drug_code, company_code, reason, started, report_id)
            cur.execute("INSERT INTO shortages (drug_code, company_code, reason, started, report_id) VALUES (?, ?, ?, ?, ?)", values)
+       o = o + 50
    con.commit()
 
    con.close
@@ -423,46 +429,33 @@ def get_graph(id):
 def get_graph_all():
     # Create network
     net = Network("1000px", "1000px")
+
     # Get report data
-    base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=active_confirmed&limit=50"
-    header = {"auth-token" : auth_token}
-    response = requests.get(base_url, headers = header)
-    reports = response.json()
-    p = reports["total_pages"]
-    o = 0
-    for x in range(p):
-        url = base_url + "&offset=" + str(o)
-        response = requests.get(url, headers = header)
-        reports = response.json()
-        data = reports["data"]
-        for report in data:
-            drug_name = report["drug"]["brand_name"]
-            try:
-                drug = report["drug"]["drug_code"]
-            except:
-                drug = report["drug"]["din"]
-            company_name = report["drug"]["company"]["name"]
-            company = report["drug"]["company"]["company_code"]
-            reason = report["shortage_reason"]["en_reason"]
-            ingredients = []
-            l = len(report["drug"]["drug_ingredients"])
-            for x in range(l):
-                try:
-                    name = report["drug"]["drug_ingredients"][x]["ingredient"]["en_name"]
-                    ingredients.append(name)
-                except:
-                   name = str(report["drug"]["drug_ingredients"][x]["ingredient"]["ingredient_code"])
-                   ingredients.append(name)
-            net.add_node(drug, label = drug_name, title = reason, color = "#ddaafa", shape = "diamond")
-            net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
-            l = len(ingredients)
-            for x in range(l):
-                net.add_node(ingredients[x], label = ingredients[x], color = "#cf538a", shape = "triangle")
-            net.add_edge(company, drug)
-            for x in range(l):
-                net.add_edge(drug, ingredients[x])
-        o = o + 50
-    # Save Visualized Network Graph
+    con = sqlite3.connect("Drug_Shortage_CA_Analysis\data\dpd_codes.db")
+    cur = con.cursor()
+    cur.execute("SELECT * FROM shortages")
+    shortages = cur.fetchall()
+
+    # Build network
+    for s in shortages:
+        drug_code = s[1]
+        company_code = s[2]
+        reason = s[3]
+        started = s[4]
+        report_id = s[5]
+        if drug_code != 0:
+            drug_name = cur.execute("SELECT drug_name FROM drugs WHERE drug_code = ?", (drug_code,)).fetchall()[0][0]
+            company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company_code,)).fetchall()[0][0]
+            net.add_node(drug_code, label = drug_name, title = reason + "<br/>From " + started + "<br/>Report " + str(report_id), color = "#e30e38", shape = "diamond")
+            net.add_node(company_code, label = company_name, color = "#5380cf", shape = "square")
+            net.add_edge(company_code, drug_code)
+            ingredients = cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,)).fetchall()
+            for ingredient in ingredients:
+                ing_name = ingredient[0]
+                net.add_node(ing_name, label = ing_name, color = "#a9d927", shape = "triangle")
+                net.add_edge(drug_code, ing_name)
+
+    # Save visualized network graph
     os.chdir(BASE_DIR + "\\templates")
     net.show_buttons(filter_=['physics'])
     net.save_graph('shortages_graph.html')
