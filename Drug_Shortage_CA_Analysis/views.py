@@ -67,21 +67,19 @@ def update_database():
        name = datum["ingredient_name"]
        used_in = datum["drug_code"]
        details = (name, used_in)
-       #cur.execute("SELECT * FROM ingredients WHERE ingredient_name = ? AND used_in = ?", details)
-       #if len(cur.fetchall()) > 0:
-       #    continue
-       #else:
        values.append(details)
    cur.executemany("INSERT INTO ingredients (ingredient_name, used_in) VALUES(?, ?)", values)
    con.commit()
 
    # Shortages
+   cur.execute("DELETE FROM shortages")
    base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=active_confirmed&limit=50"
    header = {"auth-token" : auth_token}
    response = requests.get(base_url, headers = header)
    reports = response.json()
    p = reports["total_pages"]
    o = 0
+   values = []
    for x in range(p):
        url = base_url + "&offset=" + str(o)
        response = requests.get(url, headers = header)
@@ -105,9 +103,10 @@ def update_database():
                started = report["anticipated_start_date"]
            finally:
                started = "nd"
-           values = (drug_code, company_code, reason, started, report_id)
-           cur.execute("INSERT INTO shortages (drug_code, company_code, reason, started, report_id) VALUES (?, ?, ?, ?, ?)", values)
-       o = o + 50
+           details = (drug_code, company_code, reason, started, report_id)
+           values.append(details)
+   cur.executemany("INSERT INTO shortages (drug_code, company_code, reason, started, report_id) VALUES (?, ?, ?, ?, ?)", values)
+   o = o + 50
    con.commit()
 
    con.close
