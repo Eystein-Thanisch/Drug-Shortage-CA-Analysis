@@ -18,43 +18,37 @@ def update_database():
    cur = con.cursor()
 
    # Companies
+   cur.execute("DELETE FROM companies")
    url = "https://health-products.canada.ca/api/drug/company"
    response = requests.get(url)
    company_data = response.json()
+   values = []
    codes = []
    for datum in company_data:
-       code = datum["company_code"]
-       cur.execute("SELECT * FROM companies WHERE company_code = ?", (code,))
-       if len(cur.fetchall()) > 0:
-           continue
-       if code in codes:
-           continue
-       else:
-           codes.append(code)
-           values = (datum["company_code"], datum["company_name"])
-           cur.execute("INSERT INTO companies (company_code, company_name) VALUES(?, ?)", values)
+       if datum["company_code"] not in codes:
+           codes.append(datum["company_code"])
+           details = (datum["company_code"], datum["company_name"])
+           values.append(details)
+   cur.executemany("INSERT INTO companies (company_code, company_name) VALUES(?, ?)", values)
    con.commit()
 
    # Drugs
+   cur.execute("DELETE FROM drugs")
    url = "https://health-products.canada.ca/api/drug/drugproduct"
    response = requests.get(url)
    drug_data = response.json()
+   values = []
    codes = []
    for datum in drug_data:
        code = datum["drug_code"]
-       cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (code,))
-       if len(cur.fetchall()) > 0:
-           continue
-       if code in codes:
-           continue
-       else:
+       if code not in codes:
            codes.append(code)
            owner = datum["company_name"]
            cur.execute("SELECT company_code FROM companies WHERE company_name = ?", (owner,))
-           ccode_data = cur.fetchall()
-           ccode = ccode_data[0][0]
-           values = (datum["drug_code"], datum["brand_name"], ccode)
-           cur.execute("INSERT INTO drugs (drug_code, drug_name, owner) VALUES(?, ?, ?)", values)
+           ccode = cur.fetchall()[0][0]
+           details = (code, datum["brand_name"], ccode)
+           values.append(details)
+   cur.executemany("INSERT INTO drugs (drug_code, drug_name, owner) VALUES(?, ?, ?)", values)
    con.commit()
 
    # Ingredients
