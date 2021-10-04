@@ -77,6 +77,7 @@ def update_database():
    values = []
    for x in range(p):
        url = base_url + "&offset=" + str(o)
+       o = o + 50
        response = requests.get(url, headers = header)
        reports = response.json()
        data = reports["data"]
@@ -101,7 +102,6 @@ def update_database():
                    continue
            details = (drug_code, company_code, reason, started, report_id)
            values.append(details)
-           o = o + 50
    cur.executemany("INSERT INTO shortages (drug_code, company_code, reason, started, report_id) VALUES (?, ?, ?, ?, ?)", values)
    con.commit()
 
@@ -464,7 +464,7 @@ def get_graph_all():
 def home():
     """Renders the home page."""
     lists = get_updates()
-    update_database()
+    #update_database()
     return render_template(
         'index.html', lists = lists,
         title='Home Page',
