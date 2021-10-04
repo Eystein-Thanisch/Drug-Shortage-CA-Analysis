@@ -81,22 +81,23 @@ def update_database():
        data = reports["data"]
        for report in data:
            report_id = report["id"]
-           drug_code = 0
-           try:
-               drug_code = report["drug"]["drug_code"]
-           except:
-               drug_code = report["drug"]["din"]
-           finally:
-               drug_code = 0
+           for dest in report["drug"]:
+               if "drug_code" in dest:
+                   drug_code = report["drug"]["drug_code"]
+               elif "din" in dest:
+                   drug_code = report["drug"]["din"]
+               else:
+                   continue
            company_code = report["drug"]["company"]["company_code"]
            reason = report["shortage_reason"]["en_reason"]
            started = ""
-           try:
-               started = report["actual_start_date"]
-           except:
-               started = report["anticipated_start_date"]
-           finally:
-               started = "nd"
+           for dest in report:
+               if "actual_start_date" in dest:
+                   started = report["actual_start_date"]
+               elif "anticipated_start_date" in dest:
+                   started = report["anticipated_start_date"]
+               else:
+                   continue
            details = (drug_code, company_code, reason, started, report_id)
            values.append(details)
    cur.executemany("INSERT INTO shortages (drug_code, company_code, reason, started, report_id) VALUES (?, ?, ?, ?, ?)", values)
@@ -436,17 +437,16 @@ def get_graph_all():
         reason = s[3]
         started = s[4]
         report_id = s[5]
-        if drug_code != 0:
-            drug_name = cur.execute("SELECT drug_name FROM drugs WHERE drug_code = ?", (drug_code,)).fetchall()[0][0]
-            company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company_code,)).fetchall()[0][0]
-            net.add_node(drug_code, label = drug_name, title = reason + "<br/>From " + started + "<br/>Report " + str(report_id), color = "#e30e38", shape = "diamond")
-            net.add_node(company_code, label = company_name, color = "#5380cf", shape = "square")
-            net.add_edge(company_code, drug_code)
-            ingredients = cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,)).fetchall()
-            for ingredient in ingredients:
-                ing_name = ingredient[0]
-                net.add_node(ing_name, label = ing_name, color = "#a9d927", shape = "triangle")
-                net.add_edge(drug_code, ing_name)
+        drug_name = cur.execute("SELECT drug_name FROM drugs WHERE drug_code = ?", (drug_code,)).fetchall()[0][0]
+        company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company_code,)).fetchall()[0][0]
+        net.add_node(drug_code, label = drug_name, title = reason + "<br/>From " + started + "<br/>Report " + str(report_id), color = "#e30e38", shape = "diamond")
+        net.add_node(company_code, label = company_name, color = "#5380cf", shape = "square")
+        net.add_edge(company_code, drug_code)
+        ingredients = cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,)).fetchall()
+        for ingredient in ingredients:
+            ing_name = ingredient[0]
+            net.add_node(ing_name, label = ing_name, color = "#a9d927", shape = "triangle")
+            net.add_edge(drug_code, ing_name)
 
     # Save visualized network graph
     os.chdir(BASE_DIR + "\\templates")
