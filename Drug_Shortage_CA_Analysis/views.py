@@ -75,6 +75,35 @@ def update_database():
            values = (name, used_in)
            cur.execute("INSERT INTO ingredients (ingredient_name, used_in) VALUES(?, ?)", values)
    con.commit()
+
+   # Shortages
+   base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=active_confirmed&limit=50"
+   header = {"auth-token" : auth_token}
+   response = requests.get(base_url, headers = header)
+   reports = response.json()
+   p = reports["total_pages"]
+   o = 0
+   for x in range(p):
+       url = base_url + "&offset=" + str(o)
+       response = requests.get(url, headers = header)
+       reports = response.json()
+       data = reports["data"]
+       for report in data:
+           report_id = report["id"]
+           drug_code = report["drug"]["drug_code"]
+           company_code = report["drug"]["company"]["company_code"]
+           reason = report["shortage_reason"]["en_reason"]
+           started = ""
+           try:
+               started = report["actual_start_date"]
+           except:
+               started = report["anticipated_start_date"]
+           finally:
+               started = "nd"
+           values = (drug_code, company_code, reason, started, report_id)
+           cur.execute("INSERT INTO shortages (drug_code, company_code, reason, started, report_id) VALUES (?, ?, ?, ?, ?)", values)
+   con.commit()
+
    con.close
    return
 
