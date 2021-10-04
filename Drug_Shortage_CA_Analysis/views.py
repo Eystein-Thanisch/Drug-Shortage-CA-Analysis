@@ -44,11 +44,12 @@ def update_database():
        if code not in codes:
            codes.append(code)
            owner = datum["company_name"]
+           din = datum["drug_identification_number"]
            cur.execute("SELECT company_code FROM companies WHERE company_name = ?", (owner,))
            ccode = cur.fetchall()[0][0]
-           details = (code, datum["brand_name"], ccode)
+           details = (code, datum["brand_name"], ccode, din)
            values.append(details)
-   cur.executemany("INSERT INTO drugs (drug_code, drug_name, owner) VALUES(?, ?, ?)", values)
+   cur.executemany("INSERT INTO drugs (drug_code, drug_name, owner, din) VALUES(?, ?, ?, ?)", values)
    con.commit()
 
    # Ingredients
@@ -100,8 +101,8 @@ def update_database():
                    continue
            details = (drug_code, company_code, reason, started, report_id)
            values.append(details)
+           o = o + 50
    cur.executemany("INSERT INTO shortages (drug_code, company_code, reason, started, report_id) VALUES (?, ?, ?, ?, ?)", values)
-   o = o + 50
    con.commit()
 
    con.close
@@ -433,6 +434,8 @@ def get_graph_all():
     # Build network
     for s in shortages:
         drug_code = s[1]
+        if len(drug_code) == 8 and drug_code[0:1] == "0":
+            drug_code = cur.execute("SELECT drug_code FROM drugs WHERE din = ?", (drug_code,)).fetchall()[0][0]
         company_code = s[2]
         reason = s[3]
         started = s[4]
