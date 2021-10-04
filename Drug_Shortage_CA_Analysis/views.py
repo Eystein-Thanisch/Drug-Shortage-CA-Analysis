@@ -83,26 +83,28 @@ def update_database():
        data = reports["data"]
        for report in data:
            report_id = report["id"]
-           for dest in report["drug"]:
-               if "drug_code" in dest:
-                   drug_code = report["drug"]["drug_code"]
-               elif "din" in dest:
-                   drug_code = report["drug"]["din"]
-               else:
-                   continue
+           try:
+               drug_code = report["drug"]["drug_code"]
+           except:
+               drug_code = report["drug"]["din"]
+           #for dest in report["drug"]:
+           #    if "drug_code" in dest:
+           #        drug_code = report["drug"]["drug_code"]
+           #    elif "din" in dest:
+           #        drug_code = report["drug"]["din"]
+           #    else:
+           #        continue
+           din = report["drug"]["din"]
            company_code = report["drug"]["company"]["company_code"]
            reason = report["shortage_reason"]["en_reason"]
            started = ""
-           for dest in report:
-               if "actual_start_date" in dest:
-                   started = report["actual_start_date"]
-               elif "anticipated_start_date" in dest:
-                   started = report["anticipated_start_date"]
-               else:
-                   continue
-           details = (drug_code, company_code, reason, started, report_id)
+           try:
+               started = report["actual_start_date"]
+           except:
+               started = report["anticipated_start_date"]
+           details = (drug_code, company_code, reason, started, report_id, din)
            values.append(details)
-   cur.executemany("INSERT INTO shortages (drug_code, company_code, reason, started, report_id) VALUES (?, ?, ?, ?, ?)", values)
+   cur.executemany("INSERT INTO shortages (drug_code, company_code, reason, started, report_id, din) VALUES (?, ?, ?, ?, ?, ?)", values)
    con.commit()
 
    con.close
@@ -371,49 +373,87 @@ def get_updates():
     return data
 
 def get_graph(id):
+    net = Network("1000px", "1000px")
+
     # Get Report Data
     base_url = "https://www.drugshortagescanada.ca/api/v1/shortages/"
     url = base_url + str(id)
     header = {"auth-token" : auth_token}
     response = requests.get(url, headers = header)
     report = response.json()
-    drug_name = report["drug"]["brand_name"]
     drug = report["drug"]["drug_code"]
-    company_name = report["drug"]["company"]["name"]
-    company = report["drug"]["company"]["company_code"]
-    ingredients = []
-    l = len(report["drug"]["drug_ingredients"])
-    for x in range(l):
-        name = report["drug"]["drug_ingredients"][x]["ingredient"]["en_name"]
-        ingredients.append(name)
+    status = report["status"]
+
+    con = sqlite3.connect("Drug_Shortage_CA_Analysis\data\dpd_codes.db")
+    cur = con.cursor()
+    cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (drug,))
+    report = cur.fetchall()
+    drug_name = report[0][2]
+    company = report[0][3]
+
+    cur.execute("SELECT drug_code FROM shortages")
+    shortages = cur.fetchall()
+    shortage_list = []
+    for s in shortages:
+        shortage_list.append(s[0]) 
 
     # Build Initial Network
-    net = Network()
-    net.add_node(drug, label = drug_name, color = "#ddaafa", shape = "diamond")
+    color = ""
+    if status == "active_confirmed":
+        color = "#e30e38"
+    else:
+        color = "#89d624"
+    cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,))
+    company_name = cur.fetchall()[0][0]
+    net.add_node(drug, label = drug_name, color = color, shape = "diamond")
     net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
-    l = len(ingredients)
-    for x in range(l):
-        net.add_node(ingredients[x], label = ingredients[x], color = "#cf538a", shape = "triangle")
     net.add_edge(company, drug)
-    for x in range(l):
-        net.add_edge(drug, ingredients[x])
+    cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug,))
+    ingredients = cur.fetchall()
+    ing_list = []
+    for ingredient in ingredients:
+        ing_name = ingredient[0]
+        ing_list.append(ing_name)
+        net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
+        net.add_edge(drug, ing_name)
     
-    # Ingredient links
-    for x in range(l):
-        base_url = "https://health-products.canada.ca/api/drug/activeingredient"
-        url = base_url + "/?ingredientname=" + ingredients[x]
-        response = requests.get(url)
-        ings = response.json()
-        for y in ings:
-            drug = y["drug_code"]
-            base_url = "https://health-products.canada.ca/api/drug/drugproduct"
-            url = base_url + "/?id=" + str(drug)
-            response = requests.get(url)
-            drug_data = response.json()
-            drug_name = drug_data["brand_name"]
-            net.add_node(drug, label = drug_name, color = "#ddaafa", shape = "diamond")
-            net.add_edge(drug, ingredients[x])
+    # Ingredient Links
+    for ing in ing_list:
+        cur.execute("SELECT used_in FROM ingredients WHERE ingredient_name = ?", (ing,))
+        drugs = cur.fetchall()
+        drug_list = []
+        for d in drugs:
+            drug_list.append(d[0])
+        for drug in drug_list:
+            color = ""
+            if drug in shortage_list:
+                color = "#e30e38"
+            else:
+                color = "#89d624"
+            cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (drug,))
+            report = cur.fetchall()
+            drug_name = report[0][2]
+            company = report[0][3]
+            net.add_node(drug, label = drug_name, color = color, shape = "diamond")
+            net.add_edge(drug, ing)
+            cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug,))
+            ingredients = cur.fetchall()
+            ing_list = []
+            for ingredient in ingredients:
+                ing_name = ingredient[0]
+                ing_list.append(ing_name)
+                net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
+                net.add_edge(drug, ing_name)
+            cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,))
+            company_name = cur.fetchall()[0][0]
+            net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
+            net.add_edge(company, drug)
+    
+    # Company links
 
+
+    con.commit()
+    con.close()
     # Save Visualized Network Graph
     os.chdir(BASE_DIR + "\\templates")
     net.show_buttons(filter_=['physics'])
@@ -434,7 +474,7 @@ def get_graph_all():
     # Build network
     for s in shortages:
         drug_code = s[1]
-        if len(drug_code) == 8 and drug_code[0:1] == "0":
+        if isinstance(drug_code, str):
             drug_code = cur.execute("SELECT drug_code FROM drugs WHERE din = ?", (drug_code,)).fetchall()[0][0]
         company_code = s[2]
         reason = s[3]
@@ -456,6 +496,7 @@ def get_graph_all():
     net.show_buttons(filter_=['physics'])
     net.save_graph('shortages_graph.html')
     os.chdir(BASE_DIR)
+    con.close()
     return
 
 # Routes
