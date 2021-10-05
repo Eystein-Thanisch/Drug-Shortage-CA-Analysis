@@ -366,8 +366,7 @@ def get_updates():
     return data
 
 def get_graph(id):
-    os.remove(BASE_DIR + "\\templates\\shortages_graph.html")
-    net = Network("800px", "800px")
+    net = Network("1000px", "1000px")
 
     # Get Report Data
     base_url = "https://www.drugshortagescanada.ca/api/v1/shortages/"
@@ -376,14 +375,14 @@ def get_graph(id):
     response = requests.get(url, headers = header)
     report = response.json()
     drug = report["drug"]["drug_code"]
-    orig_drug = drug
+    din = report["drug"]["din"]
     status = report["status"]
     con = sqlite3.connect(BASE_DIR + "\\data\\dpd_codes.db")
     cur = con.cursor()
     cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (drug,))
-    report = cur.fetchall()
-    drug_name = report[0][2]
-    company = report[0][3]
+    drug_info = cur.fetchall()
+    drug_name = drug_info[0][2]
+    company = drug_info[0][3]
     orig_company = company
 
     cur.execute("SELECT drug_code FROM shortages")
@@ -394,14 +393,22 @@ def get_graph(id):
 
     # Build Initial Network
     color = ""
+    title = ""
     if status == "active_confirmed":
         color = "#e30e38"
+        reason = report["shortage_reason"]["en_reason"]
+        try:
+            started = report["actual_start_date"]
+        except:
+            started = report["anticipated_start_date"]
+        title = "<br/>" + reason + "<br/>From " + str(started)
     else:
         color = "#89d624"
     cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,))
     company_name = cur.fetchall()[0][0]
-    net.add_node(drug, label = drug_name, color = color, size = 100, shape = "diamond")
-    net.add_node(company, label = company_name, color = "#5380cf", size = 100, shape = "square")
+    title = din + title
+    net.add_node(drug, label = drug_name, title = title, color = color, size = 100, mass = 100, shape = "diamond")
+    net.add_node(company, label = company_name, color = "#5380cf", size = 100, mass = 100, shape = "square")
     net.add_edge(company, drug)
     cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug,))
     ingredients = cur.fetchall()
@@ -409,7 +416,7 @@ def get_graph(id):
     for ingredient in ingredients:
         ing_name = ingredient[0]
         ing_list.append(ing_name)
-        net.add_node(ing_name, label = ing_name, color = "#d0d624", size = 100, shape = "triangle")
+        net.add_node(ing_name, label = ing_name, color = "#d0d624", size = 100, mass = 100, physics = False, shape = "triangle")
         net.add_edge(drug, ing_name)
     
     # Ingredient Links
@@ -421,15 +428,23 @@ def get_graph(id):
             drug_list.append(d[0])
         for drug in drug_list:
             color = ""
+            title = ""
             if drug in shortage_list:
                 color = "#e30e38"
+                cur.execute("SELECT reason,started FROM shortages WHERE drug_code = ? ORDER BY started LIMIT 1", (drug,))
+                these_shortages = cur.fetchall()
+                reason = these_shortages[0][0]
+                started = these_shortages[0][1]
+                title = reason + "<br/>From " + started
             else:
                 color = "#89d624"
             cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (drug,))
             report = cur.fetchall()
-            drug_name = report[0][2]
+            drug_name = report[0][2] 
             company = report[0][3]
-            net.add_node(drug, label = drug_name, color = color, shape = "diamond")
+            din = report[0][4]
+            title = din + "<br/>" + title
+            net.add_node(drug, label = drug_name, title = title, color = color, shape = "diamond")
             net.add_edge(drug, ing)
             cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug,))
             ingredients = cur.fetchall()
@@ -451,12 +466,20 @@ def get_graph(id):
     for d in drugs:
         drug_code = d[1]
         drug_name = d[2]
+        din = d[4]
         color = ""
+        title = ""
         if drug_code in shortage_list:
             color = "#e30e38"
+            cur.execute("SELECT reason,started FROM shortages WHERE drug_code = ? ORDER BY started LIMIT 1", (drug_code,))
+            these_shortages = cur.fetchall()
+            reason = these_shortages[0][0]
+            started = these_shortages[0][1]
+            title = reason + "<br/>From " + started
         else:
             color = "#89d624"
-        net.add_node(drug_code, label = drug_name, color = color, shape = "diamond")
+        title = din + "<br/>" + title
+        net.add_node(drug_code, label = drug_name, title = title, color = color, shape = "diamond")
         net.add_edge(orig_company, drug_code)
         cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,))
         ingredients = cur.fetchall()
@@ -492,9 +515,10 @@ def get_graph_all():
         reason = s[3]
         started = s[4]
         report_id = s[5]
+        din = s[6]
         drug_name = cur.execute("SELECT drug_name FROM drugs WHERE drug_code = ?", (drug_code,)).fetchall()[0][0]
         company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company_code,)).fetchall()[0][0]
-        net.add_node(drug_code, label = drug_name, title = reason + "<br/>From " + started + "<br/>Report " + str(report_id), color = "#e30e38", shape = "diamond")
+        net.add_node(drug_code, label = drug_name, title = str(din) + "<br/>" + reason + "<br/>From " + started + "<br/>Report " + str(report_id), color = "#e30e38", shape = "diamond")
         net.add_node(company_code, label = company_name, color = "#5380cf", shape = "square")
         net.add_edge(company_code, drug_code)
         ingredients = cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,)).fetchall()

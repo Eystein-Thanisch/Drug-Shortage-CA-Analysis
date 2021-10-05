@@ -1,9 +1,8 @@
 import sqlite3
 
-con = sqlite3.connect("dpd_codes.db")
+con = sqlite3.connect("\\data\\dpd_codes.db")
 cur = con.cursor()
-code = 14412
-cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (code,))
+code = 18136
+cur.execute("SELECT reason,started FROM shortages WHERE drug_code = ?", (code,))
 data = cur.fetchall()
-name = data[0][0]
-print(name)
+print(data)
