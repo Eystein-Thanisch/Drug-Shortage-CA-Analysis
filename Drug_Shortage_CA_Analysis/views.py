@@ -366,6 +366,7 @@ def get_updates():
     return data
 
 def get_graph(id):
+    os.remove(BASE_DIR + "\\templates\\shortages_graph.html")
     net = Network("800px", "800px")
 
     # Get Report Data
@@ -408,8 +409,8 @@ def get_graph(id):
     for ingredient in ingredients:
         ing_name = ingredient[0]
         ing_list.append(ing_name)
-        #net.add_node(ing_name, label = ing_name, color = "#d0d624", size = 100, shape = "triangle")
-        #net.add_edge(drug, ing_name)
+        net.add_node(ing_name, label = ing_name, color = "#d0d624", size = 100, shape = "triangle")
+        net.add_edge(drug, ing_name)
     
     # Ingredient Links
     for ing in ing_list:
@@ -429,16 +430,16 @@ def get_graph(id):
             drug_name = report[0][2]
             company = report[0][3]
             net.add_node(drug, label = drug_name, color = color, shape = "diamond")
-            if drug != orig_drug:
-                net.add_edge(orig_drug, drug, title = ing)
-            #cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug,))
-            #ingredients = cur.fetchall()
-            #ing_list = []
-            #for ingredient in ingredients:
-            #   ing_name = ingredient[0]
-            #    ing_list.append(ing_name)
-                #net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
-                #net.add_edge(orig_drug, drug)
+            net.add_edge(drug, ing)
+            cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug,))
+            ingredients = cur.fetchall()
+            ing_list = []
+            for ingredient in ingredients:
+                ing_name = ingredient[0]
+                ing_list.append(ing_name)
+                if ing_name != ing:
+                    net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
+                    net.add_edge(drug, ing_name)
             cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,))
             company_name = cur.fetchall()[0][0]
             net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
@@ -457,12 +458,12 @@ def get_graph(id):
             color = "#89d624"
         net.add_node(drug_code, label = drug_name, color = color, shape = "diamond")
         net.add_edge(orig_company, drug_code)
-        #cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,))
-        #ingredients = cur.fetchall()
-        #for ingredient in ingredients:
-        #    ing_name = ingredient[0]
-        #    net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
-        #    net.add_edge(drug_code, ing_name)
+        cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,))
+        ingredients = cur.fetchall()
+        for ingredient in ingredients:
+            ing_name = ingredient[0]
+            net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
+            net.add_edge(drug_code, ing_name)
     con.close()
 
     # Save Visualized Network Graph
@@ -575,3 +576,9 @@ def summary():
     else:
         lists = get_names()
         return render_template('summaries.html', lists=lists)
+
+# This Stack Overflow answer was used to understand how to disable Jinja caching: https://stackoverflow.com/a/43200326/9022913
+@app.before_request
+def before_request():
+    if 'localhost' in request.host_url or '0.0.0.0' in request.host_url:
+        app.jinja_env.cache = {}
