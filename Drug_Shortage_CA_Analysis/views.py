@@ -365,7 +365,7 @@ def get_updates():
         data.append(dict)
     return data
 
-def get_graph(id):
+def get_graph_report(id):
     net = Network("1000px", "1000px")
 
     # Get Report Data
@@ -416,7 +416,7 @@ def get_graph(id):
     for ingredient in ingredients:
         ing_name = ingredient[0]
         ing_list.append(ing_name)
-        net.add_node(ing_name, label = ing_name, color = "#d0d624", size = 100, mass = 100, physics = False, shape = "triangle")
+        net.add_node(ing_name, label = ing_name, color = "#d0d624", size = 100, mass = 100, shape = "triangle")
         net.add_edge(drug, ing_name)
     
     # Ingredient Links
@@ -501,7 +501,7 @@ def get_graph_all():
     net = Network("1000px", "1000px")
 
     # Get report data
-    con = sqlite3.connect("Drug_Shortage_CA_Analysis\data\dpd_codes.db")
+    con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
     cur.execute("SELECT * FROM shortages")
     shortages = cur.fetchall()
@@ -524,10 +524,111 @@ def get_graph_all():
         ingredients = cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,)).fetchall()
         for ingredient in ingredients:
             ing_name = ingredient[0]
-            net.add_node(ing_name, label = ing_name, color = "#a9d927", shape = "triangle")
+            net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
             net.add_edge(drug_code, ing_name)
 
     # Save visualized network graph
+    os.chdir(BASE_DIR + "\\templates")
+    net.show_buttons(filter_=['physics'])
+    net.save_graph('shortages_graph.html')
+    os.chdir(BASE_DIR)
+    con.close()
+    return
+
+def get_graph_entity(subj,type,id):
+    # Create network
+    net = Network("1000px", "1000px")
+
+    # Connect to database
+    con = sqlite3.connect(BASE_DIR + "\\data\\dpd_codes.db")
+    cur = con.cursor()
+
+    # Get shortage list
+    cur.execute("SELECT * FROM shortages")
+    shortages = cur.fetchall()
+    shortage_list = {}
+    for s in shortages:
+        shortage_list[s[1]] = {}
+        shortage_list[s[1]]["reason"] = s[3]
+        shortage_list[s[1]]["started"] = s[4]
+
+    # Determine what is being searched for:
+    # Drug
+    if subj == 0:
+        # Drug node
+        cur.execute("SELECT * FROM drugs WHERE din = ?", (id,))
+        drug_data = cur.fetchall()
+        drug_code = drug_data[0][1]
+        start_drug = drug_code
+        drug_name = drug_data[0][2]
+        din = id
+        company = drug_data[0][3]
+        title = din
+        color = ""
+        if drug_code in shortage_list:
+            reason = shortage_list[drug_code]["reason"]
+            started = shortage_list[drug_code]["started"]
+            color = "#e30e38"
+            title = title + "<br/>" + reason + "<br/>From " + started
+        else:
+            color = "#89d624"
+        net.add_node(drug_code, label = drug_name, title = title, color = color, size = 100, mass = 100, shape = "diamond")
+
+        # Company node
+        company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,)).fetchall()[0][0]
+        net.add_node(company, label = company_name, color = "#5380cf", size = 100, mass = 100, shape = "square")
+        net.add_edge(company, drug_code)
+
+        # Ingredient nodes
+        ingredients = cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,)).fetchall()
+        for ingredient in ingredients:
+            ing_name = ingredient[0]
+            #net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
+            #net.add_edge(drug_code, ing_name)
+            
+            # Ingredient links
+            ing_links = cur.execute("SELECT used_in FROM ingredients WHERE ingredient_name = ?", (ing_name,)).fetchall()
+            for link in ing_links:
+                if len(ing_links) == 1:
+                    net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
+                    net.add_edge(drug_code, ing_name)
+                link_drug = link[0]
+                cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (link_drug,))
+                drug_data = cur.fetchall()
+                drug_code = link_drug
+                drug_name = drug_data[0][2]
+                din = drug_data[0][4]
+                company = drug_data[0][3]
+                title = din
+                color = ""
+                if drug_code in shortage_list:
+                    reason = shortage_list[drug_code]["reason"]
+                    started = shortage_list[drug_code]["started"]
+                    color = "#e30e38"
+                    title = title + "<br/>" + reason + "<br/>From " + started
+                else:
+                    color = "#89d624"
+                if start_drug != drug_code:
+                    net.add_node(drug_code, label = drug_name, title = title, color = color, shape = "diamond")
+                    net.add_edge(start_drug, drug_code, title = ing_name)
+                company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,)).fetchall()[0][0]
+                net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
+                net.add_edge(company, drug_code)
+                for link in ing_links:
+                    link_drug = link[0]
+                    if drug_code != link_drug:
+                        try:
+                            net.add_edge(drug_code, link_drug, title = ing_name)
+                        except:
+                            continue
+    # Company
+    elif subj == 1:
+        return
+    # Ingredient
+    elif subj == 2:
+        return
+    # Save visualized network graph
+    net.set_edge_smooth('dynamic')
     os.chdir(BASE_DIR + "\\templates")
     net.show_buttons(filter_=['physics'])
     net.save_graph('shortages_graph.html')
@@ -552,14 +653,22 @@ def home():
 def visualize():
     if request.method == "POST":
         id = request.form.get("submit")
-        get_graph(id)
-        return render_template('visualized.html')
-
-@app.route('/visualize_all', methods=["GET", "POST"])
-def visualize_all():
-    if request.method == "POST":
-        get_graph_all()
-        return render_template('visualized.html')
+        what = int(request.form.get("what"))
+        if what < 3:
+            subj = int(request.form.get("subject"))
+            type = int(request.form.get("type"))
+            id = request.form.get("term")
+            get_graph_entity(subj,type,id)
+        elif what == 3:
+            get_graph_report(id)
+        elif what == 4:
+            get_graph_all()
+        else:
+            return render_template('to_do.html')
+        return render_template('visualized.html', type = type)
+    else:
+        lists = get_names()
+        return render_template("visualize.html", lists = lists)
 
 @app.route('/contact')
 def contact():
@@ -595,7 +704,6 @@ def summary():
         lists.append(query)
         response = get_summary(subj, type, term)
         lists.append(response)
-        print(lists)
         return render_template('summarized.html', lists=lists)
     else:
         lists = get_names()

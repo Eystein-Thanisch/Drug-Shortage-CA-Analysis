@@ -7,11 +7,11 @@
 {% block content %}
 
 <div class="jumbotron">
-    <h1>Summary Reports</h1>
+    <h2>Get Network Graph</h2>
 </div>
 
 <div class="row">
-    <form action="/summary" method="post">
+    <form action="/visualize" method="post">
         <div id="q1" class="col-md-3">
             <div id="s1a" class="container">
                 <select name="subject" id="subject" onchange="search_term(value)">
@@ -39,6 +39,7 @@
         <div id="q4" class="col-md-3">
             <div id="sub_cont" class="container" hidden>
                 <button id="submit" class="btn btn-primary">Submit</button>
+                <input hidden name="what" value="0"/>
             </div>
         </div>
     </form>

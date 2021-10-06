@@ -19,13 +19,16 @@
     <div class="col-md-4">
         <h2>Time Series Graphs</h2>
         <p>View shortage and discontinuation history over time by medicine, company, ingredient, and more.</p>
-        <p><a class="btn btn-default" href="">Start query &raquo;</a></p>
+        <form action="/visualize" method="get">
+            <button class="btn btn-default" type="submit">Start query &raquo;</button>
+        </form>
     </div>
     <div class="col-md-4">
         <h2>Network Graphs</h2>
         <p>View the relationships of companies, products, and ingredients affected by a shortage via a network graph.</p>
-        <form action="/visualize_all" method="post">
+        <form action="/visualize" method="post">
             <button class="btn btn-default" type="submit">Start query &raquo;</button>
+            <input hidden name="what" value="4"/>
         </form>
     </div>
 </div>
@@ -92,6 +95,7 @@
                         <td>
                             <form action="/visualize" method="post">
                                 <button id="submit" name="submit" class="btn btn-primary" value="{{ item["id"] }}">Visualize</button>
+                                <input hidden name="what" value="3"/>
                             </form>
                         </td>
                     </tr>
