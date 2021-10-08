@@ -52,6 +52,17 @@ def update_database():
    cur.executemany("INSERT INTO drugs (drug_code, drug_name, owner, din) VALUES(?, ?, ?, ?)", values)
    con.commit()
 
+   # Drug Status
+   url = "https://health-products.canada.ca/api/drug/status"
+   response = requests.get(url)
+   status_data = response.json()
+   for datum in status_data:
+       drug_code = datum["drug_code"]
+       status = datum["status"]
+       details = (status, drug_code)
+       cur.execute("UPDATE drugs SET status = ? WHERE drug_code = ?", details)
+   con.commit()
+
    # Ingredients
    cur.execute("DELETE FROM ingredients")
    url = "https://health-products.canada.ca/api/drug/activeingredient"
@@ -88,7 +99,10 @@ def update_database():
            except:
                drug_code = report["drug"]["din"]
            din = report["drug"]["din"]
-           company_code = report["drug"]["company"]["company_code"]
+           try:
+               company_code = report["drug"]["company"]["company_code"]
+           except:
+               company_code = "no_code"
            reason = report["shortage_reason"]["en_reason"]
            started = ""
            try:
@@ -98,6 +112,76 @@ def update_database():
            details = (drug_code, company_code, reason, started, report_id, din)
            values.append(details)
    cur.executemany("INSERT INTO shortages (drug_code, company_code, reason, started, report_id, din) VALUES (?, ?, ?, ?, ?, ?)", values)
+   con.commit()
+
+   # Anticipated Shortages
+   cur.execute("DELETE FROM anticipated_shortages")
+   base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=anticipated_shortage&limit=50"
+   header = {"auth-token" : auth_token}
+   response = requests.get(base_url, headers = header)
+   reports = response.json()
+   p = reports["total_pages"]
+   o = 0
+   values = []
+   for x in range(p):
+       url = base_url + "&offset=" + str(o)
+       o = o + 50
+       response = requests.get(url, headers = header)
+       reports = response.json()
+       data = reports["data"]
+       for report in data:
+           report_id = report["id"]
+           try:
+               drug_code = report["drug"]["drug_code"]
+           except:
+               drug_code = report["drug"]["din"]
+           din = report["drug"]["din"]
+           try:
+               company_code = report["drug"]["company"]["company_code"]
+           except:
+               company_code = "no_code"
+           reason = report["shortage_reason"]["en_reason"]
+           started = report["anticipated_start_date"]
+           details = (drug_code, company_code, reason, started, report_id, din)
+           values.append(details)
+   cur.executemany("INSERT INTO anticipated_shortages (drug_code, company_code, reason, started, report_id, din) VALUES (?, ?, ?, ?, ?, ?)", values)
+   con.commit()
+
+   # Discontinuations
+   cur.execute("DELETE FROM discontinuations")
+   base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=discontinued&limit=50"
+   header = {"auth-token" : auth_token}
+   response = requests.get(base_url, headers = header)
+   reports = response.json()
+   p = reports["total_pages"]
+   o = 0
+   values = []
+   for x in range(p):
+       url = base_url + "&offset=" + str(o)
+       o = o + 50
+       response = requests.get(url, headers = header)
+       reports = response.json()
+       data = reports["data"]
+       for report in data:
+           report_id = report["id"]
+           try:
+               drug_code = report["drug"]["drug_code"]
+           except:
+               drug_code = report["drug"]["din"]
+           din = report["drug"]["din"]
+           try:
+               company_code = report["drug"]["company"]["company_code"]
+           except:
+               company_code = "no_code"
+           reason = report["discontinuance_reason"]["en_reason"]
+           started = ""
+           try:
+               started = report["discontinuation_date"]
+           except:
+               started = report["anticipated_discontinuation_date"]
+           details = (drug_code, company_code, reason, started, report_id, din)
+           values.append(details)
+   cur.executemany("INSERT INTO discontinuations (drug_code, company_code, reason, started, report_id, din) VALUES (?, ?, ?, ?, ?, ?)", values)
    con.commit()
 
    con.close
@@ -432,6 +516,24 @@ def get_graph_entity(subj,type,id):
         shortage_list[s[1]]["reason"] = s[3]
         shortage_list[s[1]]["started"] = s[4]
 
+    # Get anticipated shortages list
+    cur.execute("SELECT * FROM anticipated_shortages")
+    ant_shortages = cur.fetchall()
+    ant_shortage_list = {}
+    for a_s in ant_shortages:
+        ant_shortage_list[a_s[1]] = {}
+        ant_shortage_list[a_s[1]]["reason"] = a_s[3]
+        ant_shortage_list[a_s[1]]["started"] = a_s[4]
+
+    # Get discontinuations list
+    cur.execute("SELECT * FROM discontinuations")
+    discontinuations = cur.fetchall()
+    discontinuation_list = {}
+    for d in discontinuations:
+        discontinuation_list[d[1]] = {}
+        discontinuation_list[d[1]]["reason"] = d[3]
+        discontinuation_list[d[1]]["started"] = d[4]
+
     # Determine what is being searched for:
     # Drug
     if subj == 0:
@@ -443,6 +545,7 @@ def get_graph_entity(subj,type,id):
         drug_name = drug_data[0][2]
         din = id
         company = drug_data[0][3]
+        status = drug_data[0][5]
         start_company = company
         title = din
         color = ""
@@ -452,6 +555,20 @@ def get_graph_entity(subj,type,id):
             reason = shortage_list[drug_code]["reason"]
             started = shortage_list[drug_code]["started"]
             color = "#e30e38"
+            title = title + "<br/>" + reason + "<br/>From " + started
+        elif drug_code in ant_shortage_list:
+            reason = ant_shortage_list[drug_code]["reason"]
+            started = ant_shortage_list[drug_code]["started"]
+            color = "#cf8702"
+            title = title + "<br/>" + reason + "<br/>From " + started
+        elif drug_code in discontinuation_list or "CANCELLED" in status:
+            try:
+                reason = discontinuation_list[drug_code]["reason"]
+                started = discontinuation_list[drug_code]["started"]
+            except:
+                reason = status
+                started = "[unavailable]"
+            color = "#abaaa7"
             title = title + "<br/>" + reason + "<br/>From " + started
         else:
             color = "#89d624"
@@ -483,6 +600,7 @@ def get_graph_entity(subj,type,id):
                     start_drug = drug_code
                     drug_name = drug_data[0][2]
                     din = drug_data[0][4]
+                    status = drug_data[0][5]
                     company = drug_data[0][3]
                     title = din
                     color = ""
@@ -490,6 +608,20 @@ def get_graph_entity(subj,type,id):
                         reason = shortage_list[drug_code]["reason"]
                         started = shortage_list[drug_code]["started"]
                         color = "#e30e38"
+                        title = title + "<br/>" + reason + "<br/>From " + started
+                    elif drug_code in ant_shortage_list:
+                        reason = ant_shortage_list[drug_code]["reason"]
+                        started = ant_shortage_list[drug_code]["started"]
+                        color = "#cf8702"
+                        title = title + "<br/>" + reason + "<br/>From " + started
+                    elif drug_code in discontinuation_list or "CANCELLED" in status:
+                        try:
+                            reason = discontinuation_list[drug_code]["reason"]
+                            started = discontinuation_list[drug_code]["started"]
+                        except:
+                            reason = status
+                            started = "[unavailable]"
+                        color = "#abaaa7"
                         title = title + "<br/>" + reason + "<br/>From " + started
                     else:
                         color = "#89d624"
@@ -516,12 +648,27 @@ def get_graph_entity(subj,type,id):
                 drug_name = drug[2]
                 din = drug[4]
                 company = drug[3]
+                status = drug[5]
                 title = din
                 color = ""
                 if drug_code in shortage_list:
                     reason = shortage_list[drug_code]["reason"]
                     started = shortage_list[drug_code]["started"]
                     color = "#e30e38"
+                    title = title + "<br/>" + reason + "<br/>From " + started
+                elif drug_code in ant_shortage_list:
+                    reason = ant_shortage_list[drug_code]["reason"]
+                    started = ant_shortage_list[drug_code]["started"]
+                    color = "#cf8702"
+                    title = title + "<br/>" + reason + "<br/>From " + started
+                elif drug_code in discontinuation_list or "CANCELLED" in status:
+                    try:
+                        reason = discontinuation_list[drug_code]["reason"]
+                        started = discontinuation_list[drug_code]["started"]
+                    except:
+                        reason = status
+                        started = "[unavailable]"
+                    color = "#abaaa7"
                     title = title + "<br/>" + reason + "<br/>From " + started
                 else:
                     color = "#89d624"
@@ -552,12 +699,27 @@ def get_graph_entity(subj,type,id):
             drug_code = drug[1]
             drug_name = drug[2]
             din = drug[4]
+            status = drug[5]
             title = din
             color = ""
             if drug_code in shortage_list:
                 reason = shortage_list[drug_code]["reason"]
                 started = shortage_list[drug_code]["started"]
                 color = "#e30e38"
+                title = title + "<br/>" + reason + "<br/>From " + started
+            elif drug_code in ant_shortage_list:
+                reason = ant_shortage_list[drug_code]["reason"]
+                started = ant_shortage_list[drug_code]["started"]
+                color = "#cf8702"
+                title = title + "<br/>" + reason + "<br/>From " + started
+            elif drug_code in discontinuation_list or "CANCELLED" in status:
+                try:
+                    reason = discontinuation_list[drug_code]["reason"]
+                    started = discontinuation_list[drug_code]["started"]
+                except:
+                    reason = status
+                    started = "[unavailable]"
+                color = "#abaaa7"
                 title = title + "<br/>" + reason + "<br/>From " + started
             else:
                 color = "#89d624"
@@ -590,12 +752,27 @@ def get_graph_entity(subj,type,id):
                 drug_name = drug[2]
                 din = drug[4]
                 company = drug[3]
+                status = drug[5]
                 title = din
                 color = ""
                 if drug_code in shortage_list:
                     reason = shortage_list[drug_code]["reason"]
                     started = shortage_list[drug_code]["started"]
                     color = "#e30e38"
+                    title = title + "<br/>" + reason + "<br/>From " + started
+                elif drug_code in ant_shortage_list:
+                    reason = ant_shortage_list[drug_code]["reason"]
+                    started = ant_shortage_list[drug_code]["started"]
+                    color = "#cf8702"
+                    title = title + "<br/>" + reason + "<br/>From " + started
+                elif drug_code in discontinuation_list or "CANCELLED" in status:
+                    try:
+                        reason = discontinuation_list[drug_code]["reason"]
+                        started = discontinuation_list[drug_code]["started"]
+                    except:
+                        reason = status
+                        started = "[unavailable]"
+                    color = "#abaaa7"
                     title = title + "<br/>" + reason + "<br/>From " + started
                 else:
                     color = "#89d624"
@@ -625,16 +802,16 @@ def get_graph_entity(subj,type,id):
     return
 
 # Routes
-@app.route('/')
+@app.route('/', methods=["GET", "POST"])
 @app.route('/home')
 def home():
-    """Renders the home page."""
+    if request.method == "POST":
+        update_database()
     lists = get_updates()
-    #update_database()
     return render_template(
-        'index.html', lists = lists,
-        title='Home Page',
-        year=datetime.now().year,
+            'index.html', lists = lists,
+            title='Home Page',
+            year=datetime.now().year,
     )
 
 @app.route('/visualize', methods=["GET", "POST"])

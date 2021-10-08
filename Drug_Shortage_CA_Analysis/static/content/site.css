@@ -93,3 +93,7 @@ input[type="checkbox"].input-validation-error {
 .select2-search--dropdown .select2-search__field {
     width: 98%;
 }
+
+.top-buffer {
+    margin-top: 20px;
+}
