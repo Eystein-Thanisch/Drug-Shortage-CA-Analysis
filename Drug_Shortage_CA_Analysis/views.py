@@ -192,46 +192,54 @@ def get_names():
 
     #Drugs
     drugs = []
-    url = "https://health-products.canada.ca/api/drug/drugproduct"
-    response = requests.get(url)
-    js = response.json()
-    for x in range(len(js)):
+    con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
+    cur = con.cursor()
+    cur.execute("SELECT drug_code,drug_name,owner,din FROM drugs")
+    drug_data = cur.fetchall()
+    for d in drug_data:
         drug = {}
-        din = js[x]["drug_identification_number"]
-        dn = js[x]["brand_name"]
-        manufacturer = js[x]["company_name"]
-        drug = {"name" : dn, "code" : din, "manufacturer" : manufacturer}
+        drug_code = d[0]
+        din = d[3]
+        drug_name = d[1]
+        owner = d[2]
+        cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (owner,))
+        owner = cur.fetchall()[0][0]
+        drug = {"name" : drug_name, "code" : din, "company" : owner}
         drugs.append(drug)
     lists.append(drugs)
 
     #Manufacturers
-    manufacturers = []
-    url = "https://health-products.canada.ca/api/drug/company"
-    response = requests.get(url)
-    js = response.json()
-    for x in range(len(js)):
-        manufacturer = {}
-        cc = js[x]["company_code"] 
-        cn = js[x]["company_name"]
-        manufacturer = {"name" : cn, "code" : cc}
-        manufacturers.append(manufacturer)
-    lists.append(manufacturers)
+    companies = []
+    con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
+    cur = con.cursor()
+    cur.execute("SELECT company_code,company_name FROM companies")
+    comps = cur.fetchall()
+    for comp in comps:
+        company = {}
+        cc = comp[0] 
+        cn = comp[1]
+        company = {"name" : cn, "code" : cc}
+        companies.append(company)
+    lists.append(companies)
 
     #Ingredients
-    ingredients = []
-    url = "https://health-products.canada.ca/api/drug/activeingredient"
-    response = requests.get(url)
-    js = response.json()
-    names = []
-    for x in range(len(js)):
-        ing_name = js[x]["ingredient_name"]
-        names.append(ing_name)
+    names = {}
+    con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
+    cur = con.cursor()
+    cur.execute("SELECT ingredient_name FROM ingredients")
+    ings = cur.fetchall()
+    for ing in ings:
+        ing_name = ing[0]
+        names[ing_name] = 0 
     # This method of de-duplicating a list is based on: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
-    names = list(dict.fromkeys(names))
-    for y in range(len(names)):
+    names = list(names)
+    counter = 0
+    ingredients = []
+    for name in names:
+        counter += 1
         ingredient = {}
-        ing_code = y
-        ing_name = names[y]
+        ing_code = counter
+        ing_name = name
         ingredient = {"name" : ing_name, "code" : ing_code}
         ingredients.append(ingredient)
     lists.append(ingredients)
@@ -251,7 +259,7 @@ def get_summary(subj, type, term):
         code = js[0]["drug_code"]
         dict2["name"] = js[0]["brand_name"]
         dict2["class"] = js[0]["class_name"]
-        dict2["manufacturer"] = js[0]["company_name"]
+        dict2["company"] = js[0]["company_name"]
 
         # Active Ingredients
         base_url = "https://health-products.canada.ca/api/drug/activeingredient"
@@ -395,17 +403,17 @@ def get_summary(subj, type, term):
            drug_code = js[x]["drug_code"]
            drugs.append(drug_code)
         dict2["drug_count"] = counter
-        manufacturers = []
+        companies = []
         for x in range(len(drugs)):
             code = drugs[x]
             base_url = "https://health-products.canada.ca/api/drug/drugproduct"
             url = base_url + "/?id=" + str(code)
             response = requests.get(url)
             js = response.json()
-            manufacturer = js["company_name"]
-            if manufacturer not in manufacturers:
-                manufacturers.append(manufacturer)
-        dict2["manufacturer_count"] = len(manufacturers)
+            company = js["company_name"]
+            if company not in companies:
+                companies.append(company)
+        dict2["company_count"] = len(companies)
         dict1["ingredient_details"] = dict2
 
         # Shortage Details

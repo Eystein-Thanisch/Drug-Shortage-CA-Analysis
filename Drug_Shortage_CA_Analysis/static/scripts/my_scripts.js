@@ -108,7 +108,8 @@ function populate_dropdowns(lists, n, c) {
             if (n == 0) {
                 if (c == 0) {
                     var name = list[i]["name"];
-                    opt.innerHTML = name.concat(" [", list[i]["manufacturer"], "]");
+                    var comp = list[i]["company"]
+                    opt.innerHTML = name + " [" + comp + "]";
                 }
                 else {
                     opt.innerHTML = list[i]["code"];
