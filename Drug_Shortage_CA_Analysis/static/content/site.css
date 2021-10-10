@@ -98,6 +98,10 @@ input[type="checkbox"].input-validation-error {
     margin-top: 20px;
 }
 
+.warning_text {
+    font-weight: bold;
+}
+
 .viz_text {
     font-size: 16px;
 }
