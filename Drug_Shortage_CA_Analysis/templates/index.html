@@ -4,8 +4,14 @@
 
 <div class="jumbotron">
     <h1>Drug Shortages Canada: Analysis</h1>
-    <p class="lead">A simple web service providing analysis and visualizations of publicly available data from Drug Shortages Canada, Canada's mandatory drug shortage and discontinuation reporting website.</p>
-    <p><a href="https://www.drugshortagescanada.ca/" class="btn btn-primary btn-large">Drug Shortages Canada &raquo;</a></p>
+    <p class="lead">A simple web service providing analysis and visualizations of publicly available data from Drug Shortages Canada, Canada's mandatory drug shortage and discontinuation reporting website, supported by Health Canada's Drug Product Database.</p>
+    <p>
+    <a href="https://www.drugshortagescanada.ca/" class="btn btn-primary btn-large jtron_btn" target="_blank">Drug Shortages Canada &raquo;</a>
+    <a href="https://www.canada.ca/en/health-canada/services/drugs-health-products/drug-products/drug-product-database.html" class="btn btn-primary btn-large jtron_btn" target="_blank">Drug Product Database &raquo;</a>
+    </p>
+    <p class="warning_text">
+        This web app is for academic research only. It should not be used to make any sort of medical or commercial decision.
+    </p>
 </div>
 
 <div class="row">
@@ -44,7 +50,7 @@
     <div class="col-md-12">
         <form action="/" method="post">
             <button id="refresh" name="refresh" class="btn btn-warning" value="refresh" title="**Warning**: updating the database will take some time.">Refresh Database</button>
-            <span>Last update: {{ lists[20]["last_update"] }}</span>
+            <span>Last update (UTC): {{ lists[20]["last_update"] }}</span>
         </form>
     </div>
 </div>
@@ -62,7 +68,7 @@
                         Report
                     </th>
                     <th scope="col">
-                        Datetime
+                        Datetime (UTC)
                     </th>
                     <th scope="col">
                         Event
