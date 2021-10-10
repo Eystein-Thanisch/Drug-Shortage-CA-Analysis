@@ -815,6 +815,8 @@ def update_dbdt():
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
     cur.execute("INSERT INTO updates (update_timestamp) VALUES(?)", (ts,))
+    con.commit()
+    con.close()
     return
 
 # Routes
