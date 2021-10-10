@@ -811,10 +811,10 @@ def get_graph_entity(subj,type,id):
     return
 
 def update_dbdt():
-    dt = str(datetime.now(timezone.utc)).strftime("%B %d, %Y %I:%M%p")
+    ts = datetime.now().timestamp()
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
-    cur.execute("INSERT INTO updates (update) VALUES(?)", utcdt)
+    cur.execute("INSERT INTO updates (update_timestamp) VALUES(?)", (ts,))
     return
 
 # Routes
