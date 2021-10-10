@@ -195,7 +195,7 @@ def get_names():
     drugs = []
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
-    cur.execute("SELECT drug_code,drug_name,owner,din FROM drugs")
+    cur.execute("SELECT drug_code,drug_name,owner,din,company_code FROM drugs,companies JOIN ON company_code = owner")
     drug_data = cur.fetchall()
     for d in drug_data:
         drug = {}
@@ -841,9 +841,8 @@ def home():
     last_update = get_last_update()
     lists = get_updates()
     update["last_update"] = last_update
-    lists.append(update)
     return render_template(
-            'index.html', lists = lists,
+            'index.html', lists = lists, update=update,
             title='Home Page',
             year=datetime.now().year,
     )
