@@ -2,6 +2,7 @@ import json
 import requests
 import os.path
 import sqlite3
+import pytz
 
 from datetime import datetime
 from flask import render_template, request, send_file
@@ -809,12 +810,20 @@ def get_graph_entity(subj,type,id):
     con.close()
     return
 
+def update_dbdt():
+    dt = str(datetime.now(timezone.utc)).strftime("%B %d, %Y %I:%M%p")
+    con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
+    cur = con.cursor()
+    cur.execute("INSERT INTO updates (update) VALUES(?)", utcdt)
+    return
+
 # Routes
 @app.route('/', methods=["GET", "POST"])
 @app.route('/home')
 def home():
     if request.method == "POST":
-        update_database()
+        #update_database()
+        update_dbdt()
     lists = get_updates()
     return render_template(
             'index.html', lists = lists,
