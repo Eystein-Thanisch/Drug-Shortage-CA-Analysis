@@ -12,23 +12,31 @@
     <div class="col-md-4">
         <h2>Summary</h2>
         <p>Get a summary of a medicine, ingredient, or company's history of involvement in shortages.</p>
-        <form action="/summary" method="get">
-            <button class="btn btn-default" type="submit">Start query &raquo;</button>
-         </form>
     </div>
     <div class="col-md-4">
         <h2>Entity Network</h2>
         <p>Get a network graph based around a particular drug, company, or active ingredient.</p>
+    </div>
+    <div class="col-md-4">
+        <h2>Shortages Network</h2>
+        <p>View all current active shortages as a network graph.</p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <form action="/summary" method="get">
+            <button class="btn btn-default" type="submit">Start query &raquo;</button>
+        </form>
+    </div>
+    <div class="col-md-4">
         <form action="/visualize" method="get">
             <button class="btn btn-default" type="submit">Start query &raquo;</button>
         </form>
     </div>
     <div class="col-md-4">
-        <h2>Shortages Network</h2>
-        <p>View all current active shortages as a network graph.</p>
         <form action="/visualize" method="post">
             <button class="btn btn-default" type="submit">Start query &raquo;</button>
-            <input hidden name="what" value="4"/>
+            <input hidden name="what" value="4" />
         </form>
     </div>
 </div>

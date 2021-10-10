@@ -838,7 +838,8 @@ def visualize():
             get_graph_all()
         else:
             return render_template('to_do.html')
-        return render_template('visualized.html', type = what)
+        details = (what, id)
+        return render_template('visualized.html', details = details)
     else:
         lists = get_names()
         return render_template("visualize.html", lists = lists)

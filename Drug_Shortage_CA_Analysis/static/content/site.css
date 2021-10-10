@@ -97,3 +97,41 @@ input[type="checkbox"].input-validation-error {
 .top-buffer {
     margin-top: 20px;
 }
+
+.viz_text {
+    font-size: 16px;
+}
+
+.node_key {
+    border: none;
+    margin-left: 100px;
+}
+
+.symbol {
+    font-size: 28px;
+    text-align: center;
+}
+
+.product_available {
+    color: #89d624;
+}
+
+.product_ant_short {
+    color: #cf8702;
+}
+
+.product_short {
+    color: #e30e38;
+}
+
+.product_discontinued {
+    color: #abaaa7;
+}
+
+.company {
+    color: #5380cf;
+}
+
+.ingredient {
+    color: #d0d624;
+}
