@@ -4,7 +4,7 @@ import os.path
 import sqlite3
 import pytz
 
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import render_template, request, send_file
 from pyvis.network import Network
 from Drug_Shortage_CA_Analysis import app
@@ -449,7 +449,11 @@ def get_updates():
         dict = {}
         dict["id"] = reports[x]["id"]
         dict["url"] = "https://www.drugshortagescanada.ca/shortage/" + str(reports[x]["id"])
-        dict["date"] = reports[x]["updated_date"]
+        updated_date = reports[x]["updated_date"]
+        dt_object = datetime.strptime(updated_date, "%Y-%m-%dT%H:%M:%S-04:00")
+        ts = round(dt_object.timestamp() * 1000)
+        dt = datetime.fromtimestamp(ts / 1000, tz=timezone.utc).strftime("%m/%d/%Y %H:%M:%S")
+        dict["date"] = dt
         dict["event"] = reports[x]["status"]
         dict["drug"] = reports[x]["drug"]["brand_name"]
         dict["din"] = reports[x]["drug"]["din"]
@@ -811,7 +815,7 @@ def get_graph_entity(subj,type,id):
     return
 
 def update_dbdt():
-    ts = datetime.now().timestamp()
+    ts = round(datetime.utcnow().timestamp() * 1000)
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
     cur.execute("INSERT INTO updates (update_timestamp) VALUES(?)", (ts,))
@@ -819,14 +823,25 @@ def update_dbdt():
     con.close()
     return
 
+def get_last_update():
+    con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
+    cur = con.cursor()
+    ts = cur.execute("SELECT MAX(update_timestamp) FROM updates").fetchall()[0][0]
+    dt = datetime.fromtimestamp(ts / 1000).strftime("%m/%d/%Y %H:%M:%S")
+    return dt
+
 # Routes
 @app.route('/', methods=["GET", "POST"])
 @app.route('/home')
 def home():
     if request.method == "POST":
-        #update_database()
+        update_database()
         update_dbdt()
+    update = {}
+    last_update = get_last_update()
     lists = get_updates()
+    update["last_update"] = last_update
+    lists.append(update)
     return render_template(
             'index.html', lists = lists,
             title='Home Page',

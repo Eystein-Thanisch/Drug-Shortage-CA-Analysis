@@ -43,8 +43,8 @@
 <div class="row top-buffer">
     <div class="col-md-12">
         <form action="/" method="post">
-            <button id="refresh" name="refresh" class="btn btn-warning" value="refresh">Refresh Database</button>
-            <span class="tooltiptext"><strong>Warning:</strong> Refreshing the database will take some time.</span>
+            <button id="refresh" name="refresh" class="btn btn-warning" value="refresh" title="**Warning**: updating the database will take some time.">Refresh Database</button>
+            <span>Last update: {{ lists[20]["last_update"] }}</span>
         </form>
     </div>
 </div>
