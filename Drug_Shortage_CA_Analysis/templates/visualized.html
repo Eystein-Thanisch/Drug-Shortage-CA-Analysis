@@ -11,21 +11,31 @@
 </div>
 
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-6">
         <p class="viz_text">
             {% if details[0] == 3 %}
-            This is a visualisation of report <a href="{{ "https://www.drugshortagescanada.ca/shortage/" + details[1] }}" target="_blank">{{ details[1] }}</a>.
+            This is a visualization of report <a href="{{ "https://www.drugshortagescanada.ca/shortage/" + details[1] }}" target="_blank">{{ details[1] }}</a>.
+            {% elif details[0] == 4 %}
+            The visualization below shows all products currently in listed as being in shortage in Canada.
+            {% else %}
+            The specified entity and its nearest neighbours are mapped in the network visualization below.
             {% endif %} It can be manipulated using the physics buttons below the viewing panel. If the nodes are moving about without your intervention and you wish to stop this, uncheck "enabled".
         </p>
-        <p class="viz_text">The nodes are keyed as follows:</p>
+        {% if details[0] <= 3 %}
+        <p class="viz_text">The node representing the subject of the query and its immediate neighbours have been enlarged in terms of both size and mass.</p>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <!-- <p class="viz_text">The nodes are keyed as follows:</p>-->
         {% if details[0] == 4 %}
         <table class="node_key">
+            <caption>Node Key</caption>
             <tbody>
                 <tr>
                     <th scope="row" class="symbol product_short">
                         &#9670;
                     </th>
-                    <td class="viz_text upper_key">
+                    <td class="table_text">
                         A drug product.
                     </td>
                 </tr>
@@ -33,28 +43,29 @@
                     <th scope="row" class="symbol company">
                         &#9632;
                     </th>
-                    <td class="viz_text">
-                        The drug product's DIN owner.
+                    <td class="table_text">
+                        A drug product's owner.
                     </td>
                 </tr>
                 <tr>
                     <th scope="row" class="symbol ingredient">
                         &#9650;
                     </th>
-                    <td class="viz_text">
-                        An active ingredient of the drug product.
+                    <td class="table_text">
+                        An active ingredient of a drug product.
                     </td>
                 </tr>
             </tbody>
         </table>
         {% else %}
         <table class="node_key">
+            <caption class="node_key_caption">Node Key</caption>
             <tbody>
                 <tr>
                     <th scope="row" class="symbol">
                         &#9671;
                     </th>
-                    <td class="viz_text upper_key">
+                    <td class="table_text">
                         A drug product:
                     </td>
                     <td>
@@ -64,7 +75,7 @@
                                     <th scope="row" class="symbol product_available">
                                         &#9670;
                                     </th>
-                                    <td class="viz_text">
+                                    <td class="table_text">
                                         marketed and available.
                                     </td>
                                 </tr>
@@ -72,7 +83,7 @@
                                     <th scope="row" class="symbol product_ant_short">
                                         &#9670;
                                     </th>
-                                    <td class="viz_text">
+                                    <td class="table_text">
                                         a shortage is anticipated.
                                     </td>
                                 </tr>
@@ -80,7 +91,7 @@
                                     <th scope="row" class="symbol product_short">
                                         &#9670;
                                     </th>
-                                    <td class="viz_text">
+                                    <td class="table_text">
                                         currently in shortage.
                                     </td>
                                 </tr>
@@ -88,7 +99,7 @@
                                     <th scope="row" class="symbol product_discontinued">
                                         &#9670;
                                     </th>
-                                    <td class="viz_text">
+                                    <td class="table_text">
                                         discontinued.
                                     </td>
                                 </tr>
@@ -100,25 +111,23 @@
                     <th scope="row" class="symbol company">
                         &#9632;
                     </th>
-                    <td class="viz_text">
-                        The drug product's DIN owner.
+                    <td class="table_text">
+                        A drug product's owner.
                     </td>
                 </tr>
                 <tr>
                     <th scope="row" class="symbol ingredient">
                         &#9650;
                     </th>
-                    <td class="viz_text">
-                        An active ingredient of the drug product.
+                    <td class="table_text">
+                        An active ingredient of a drug product.
                     </td>
                 </tr>
             </tbody>
         </table>
         {% endif %}
-        <p class="viz_text">The node representing the subject of the query and its immediate neighbours have been enlarged in terms of both size and mass.</p>
     </div>
 </div>
-
 <div class="row">
     <div class="col-md-12">
         {% include "shortages_graph.html" %}

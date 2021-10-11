@@ -195,7 +195,7 @@ def get_names():
     drugs = []
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
-    cur.execute("SELECT drug_code,drug_name,owner,din,company_code FROM drugs,companies JOIN ON company_code = owner")
+    cur.execute("SELECT drug_code,drug_name,owner,din FROM drugs")
     drug_data = cur.fetchall()
     for d in drug_data:
         drug = {}
@@ -475,7 +475,7 @@ def get_graph_report(id):
 
 def get_graph_all():
     # Create network
-    net = Network("1000px", "1000px")
+    net = Network("800px", "100%")
 
     # Get report data
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
@@ -514,7 +514,7 @@ def get_graph_all():
 
 def get_graph_entity(subj,type,id):
     # Create network
-    net = Network("1000px", "1000px")
+    net = Network("800px", "100%")
 
     # Connect to database
     con = sqlite3.connect(BASE_DIR + "\\data\\dpd_codes.db")
