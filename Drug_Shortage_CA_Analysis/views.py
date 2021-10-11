@@ -92,6 +92,9 @@ def update_database():
        o = o + 50
        response = requests.get(url, headers = header)
        reports = response.json()
+       if "error" in reports:
+           error_text = reports["error"]["en"]
+           return render_template("error.html", text = error_text)
        data = reports["data"]
        for report in data:
            report_id = report["id"]
@@ -121,6 +124,9 @@ def update_database():
    header = {"auth-token" : auth_token}
    response = requests.get(base_url, headers = header)
    reports = response.json()
+   if "error" in reports:
+       error_text = reports["error"]["en"]
+       return render_template("error.html", text = error_text)
    p = reports["total_pages"]
    o = 0
    values = []
@@ -154,6 +160,9 @@ def update_database():
    header = {"auth-token" : auth_token}
    response = requests.get(base_url, headers = header)
    reports = response.json()
+   if "error" in reports:
+       error_text = reports["error"]["en"]
+       return render_template("error.html", text = error_text)
    p = reports["total_pages"]
    o = 0
    values = []
@@ -372,13 +381,17 @@ def get_summary(subj, type, term):
         header = {"auth-token" : auth_token}
         response = requests.get(url, headers = header)
         reports = response.json()
-        resolved = reports["total"]
-        url = base_url + "/search?orderby=updated_date&order=desc&filter_status=active_confirmed&term=" + name
-        response = requests.get(url, headers = header)
-        reports = response.json()
-        active = reports["total"]
-        dict2["report_count"] = resolved + active
-        dict2["active_reports"] = active
+        if "error" in reports:
+            dict2["report_count"] = "unavailable"
+            dict2["active_reports"] = "unavailable"
+        else:
+            resolved = reports["total"]
+            url = base_url + "/search?orderby=updated_date&order=desc&filter_status=active_confirmed&term=" + name
+            response = requests.get(url, headers = header)
+            reports = response.json()
+            active = reports["total"]
+            dict2["report_count"] = resolved + active
+            dict2["active_reports"] = active
 
         dict1["drugs_marketed"] = dict2
         data.append(dict1)
@@ -424,13 +437,17 @@ def get_summary(subj, type, term):
         header = {"auth-token" : auth_token}
         response = requests.get(url, headers = header)
         reports = response.json()
-        resolved = reports["total"]
-        url = base_url + "/search?orderby=updated_date&order=desc&filter_status=active_confirmed&term=" + name
-        response = requests.get(url, headers = header)
-        reports = response.json()
-        active = reports["total"]
-        dict2["report_count"] = resolved + active
-        dict2["active_reports"] = active
+        if "error" in reports:
+            dict2["report_count"] = "unavailable"
+            dict2["active_reports"] = "unavailable"
+        else:
+            resolved = reports["total"]
+            url = base_url + "/search?orderby=updated_date&order=desc&filter_status=active_confirmed&term=" + name
+            response = requests.get(url, headers = header)
+            reports = response.json()
+            active = reports["total"]
+            dict2["report_count"] = resolved + active
+            dict2["active_reports"] = active
         dict1["shortage_details"] = dict2
 
         data.append(dict1)
@@ -444,6 +461,9 @@ def get_updates():
     header = {"auth-token" : auth_token}
     response = requests.get(url, headers = header)
     js = response.json()
+    if "error" in js:
+        data.append("error")
+        return data
     reports = js["data"]
     for x in range(20):
         dict = {}

@@ -61,6 +61,9 @@
 </div>
 <div class="row">
     <div class="col-md-12">
+        {% if lists[0] == error %}
+        <p>The Drug Shortages Canada API is currently unavailable. Please try again later. Some searches on this app are based on a cached database and will still return results.</p>
+        {% else %}
         <table class="table">
             <thead>
                 <tr>
@@ -124,6 +127,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% endif %}
     </div>
 </div>
 
