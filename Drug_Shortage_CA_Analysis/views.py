@@ -621,7 +621,9 @@ def get_graph_entity(subj,type,id):
             net.add_node(ing_name, label = ing_name, color = "#d0d624", size = 100, mass = 100, shape = "triangle")
             net.add_edge(drug_code, ing_name)
             
-            # Ingredient links
+        # Ingredient links
+        for ingredient in ingredients:
+            ing_name = ingredient[0]
             ing_links = cur.execute("SELECT used_in FROM ingredients WHERE ingredient_name = ?", (ing_name,)).fetchall()
             for ing in ing_links:
                 drug_code = ing[0]
@@ -884,10 +886,12 @@ def visualize():
         else:
             return render_template('to_do.html')
         details = (what, id)
-        return render_template('visualized.html', details = details)
+        return render_template('visualized.html', details = details,
+            year=datetime.now().year,)
     else:
         lists = get_names()
-        return render_template("visualize.html", lists = lists)
+        return render_template("visualize.html", lists = lists,
+            year=datetime.now().year,)
 
 @app.route('/contact')
 def contact():
@@ -923,10 +927,12 @@ def summary():
         lists.append(query)
         response = get_summary(subj, type, term)
         lists.append(response)
-        return render_template('summarized.html', lists=lists)
+        return render_template('summarized.html', lists=lists,
+            year=datetime.now().year,)
     else:
         lists = get_names()
-        return render_template('summaries.html', lists=lists)
+        return render_template('summaries.html', lists=lists,
+            year=datetime.now().year,)
 
 # This Stack Overflow answer was used to understand how to disable Jinja caching: https://stackoverflow.com/a/43200326/9022913
 @app.before_request
