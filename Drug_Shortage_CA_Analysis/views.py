@@ -8,6 +8,8 @@ from flask import render_template, request, send_file
 from pyvis.network import Network
 from Drug_Shortage_CA_Analysis import app
 
+#TEST2
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # NB: FIND A MORE SECURE WAY OF ACCESSING THIS BEFORE SUBMISSION!!!
