@@ -2,7 +2,6 @@ import json
 import requests
 import os.path
 import sqlite3
-import pytz
 
 from datetime import datetime, timezone
 from flask import render_template, request, send_file
@@ -24,10 +23,10 @@ def update_database():
    response = requests.get(url)
    company_data = response.json()
    values = []
-   codes = []
+   codes = set()
    for datum in company_data:
        if datum["company_code"] not in codes:
-           codes.append(datum["company_code"])
+           codes.add(datum["company_code"])
            details = (datum["company_code"], datum["company_name"])
            values.append(details)
    cur.executemany("INSERT INTO companies (company_code, company_name) VALUES(?, ?)", values)
@@ -39,11 +38,11 @@ def update_database():
    response = requests.get(url)
    drug_data = response.json()
    values = []
-   codes = []
+   codes = set()
    for datum in drug_data:
        code = datum["drug_code"]
        if code not in codes:
-           codes.append(code)
+           codes.add(code)
            owner = datum["company_name"]
            din = datum["drug_identification_number"]
            cur.execute("SELECT company_code FROM companies WHERE company_name = ?", (owner,))
@@ -233,16 +232,13 @@ def get_names():
     lists.append(companies)
 
     #Ingredients
-    names = {}
+    names = set()
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
     cur.execute("SELECT ingredient_name FROM ingredients")
     ings = cur.fetchall()
     for ing in ings:
-        ing_name = ing[0]
-        names[ing_name] = 0 
-    # This method of de-duplicating a list is based on: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
-    names = list(names)
+        names.add(ing[0])
     counter = 0
     ingredients = []
     for name in names:
@@ -348,7 +344,9 @@ def get_summary(subj, type, term):
         # Append and Send
         dict1["shortage_info"] = dict2
         data.append(dict1)
+
         return data
+
     elif subj == 1:
         data = []
         dict1 = {}
@@ -397,6 +395,7 @@ def get_summary(subj, type, term):
         data.append(dict1)
 
         return data
+
     elif subj == 2:
         data = []
         dict1 = {}
@@ -582,8 +581,8 @@ def get_graph_entity(subj,type,id):
         start_company = company
         title = din
         color = ""
-        drug_nodes = []
-        drug_nodes.append(start_drug)
+        drug_nodes = set()
+        drug_nodes.add(start_drug)
         if drug_code in shortage_list:
             reason = shortage_list[drug_code]["reason"]
             started = shortage_list[drug_code]["started"]
@@ -613,11 +612,11 @@ def get_graph_entity(subj,type,id):
         net.add_edge(company, drug_code)
 
         # Ingredient nodes
-        ingredient_nodes = []
+        ingredient_nodes = set()
         ingredients = cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,)).fetchall()
         for ingredient in ingredients:
             ing_name = ingredient[0]
-            ingredient_nodes.append(ing_name)
+            ingredient_nodes.add(ing_name)
             net.add_node(ing_name, label = ing_name, color = "#d0d624", size = 100, mass = 100, shape = "triangle")
             net.add_edge(drug_code, ing_name)
             
@@ -628,7 +627,7 @@ def get_graph_entity(subj,type,id):
             for ing in ing_links:
                 drug_code = ing[0]
                 if drug_code not in drug_nodes:
-                    drug_nodes.append(drug_code)
+                    drug_nodes.add(drug_code)
                     cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (drug_code,))
                     drug_data = cur.fetchall()
                     drug_code = drug_data[0][1]
@@ -670,7 +669,7 @@ def get_graph_entity(subj,type,id):
                     for ingredient in ingredients:
                         ing_name = ingredient[0]
                         if ing_name not in ingredient_nodes:
-                            ingredient_nodes.append(ing_name)
+                            ingredient_nodes.add(ing_name)
                             net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
                         net.add_edge(drug_code, ing_name)
 
@@ -713,7 +712,7 @@ def get_graph_entity(subj,type,id):
                 for ingredient in ingredients:
                     ing_name = ingredient[0]
                     if ing_name not in ingredient_nodes:
-                        ingredient_nodes.append(ing_name)
+                        ingredient_nodes.add(ing_name)
                         net.add_node(ing_name, label = ing_name, color = "#d0d624", shape = "triangle")
                     net.add_edge(drug_code, ing_name)
 
@@ -770,10 +769,10 @@ def get_graph_entity(subj,type,id):
 
     # Ingredient
     elif subj == 2:
-        ingredient_nodes = []
+        ingredient_nodes = set()
 
         # Ingredient node
-        ingredient_nodes.append(id)
+        ingredient_nodes.add(id)
         net.add_node(id, label = id, color = "#d0d624", size = 100, mass = 100, shape = "triangle")
 
         # Drug nodes
