@@ -2,9 +2,16 @@
 
 {% block content %}
 
-<h2>{{ title }}.</h2>
-<h3>{{ message }}</h3>
-
-<p>Use this area to provide additional information.</p>
+<div class="jumbotron">
+    <h2>{{ title }}</h2>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h3>Motivation</h3>
+        <p>This web app offers basic analysis and visualizations of the latest data from <a href="https://www.drugshortagescanada.ca" target="_blank">Drug Shortages Canada</a>, supported by data from the <a href="https://www.canada.ca/en/health-canada/services/drugs-health-products/drug-products/drug-product-database" target="_blank">Drug Product Database</a>. It aims to provide contextual and historical information related to medicine shortages that will help trace the underlying cause and anticipate how the situation will develop.</p>
+        <p>Medicine shortages constitute a complex global problem, with obvious impacts on patient care. Causes can include high demand straining manufacturing or distribution capacity, low demand causing providers to discontinue products, regulatory obstacles, or extraneous disruptions to the supply chain. The resulting shortages have most impact in the Global South, where governments and healthcare providers have less purchasing power and less access to market intelligence. However, the problem is most easily studied in the Global North, where more data is typically available, often thanks to mandatory reporting systems like <a href="https://www.drugshortagescanada.ca" target="_blank">Drug Shortages Canada</a>. Furthermore, in such countries, shortages are the exception rather than the rule, meaning that newly emerging shortage situations are more readily identifiable.</p>
+        <p><a href="https://www.drugshortagescanada.ca" target="_blank">Drug Shortages Canada</a> and the <a href="https://www.canada.ca/en/health-canada/services/drugs-health-products/drug-products/drug-product-database" target="_blank">Drug Product Database</a> already offer sophisticated search functionality on their own sites, but their focus is on returning lists of individual shortage reports and product profiles. The present app supplements this information by visualizing the relevant products, ingredients, and companies as network graphs. These network graphs can reveal whether an individual shortage is potentially part of a wider trend and, if so, what might merit further investigation to better understand that trend. For example, it might turn out that the product owner has reported a string of shortages recently citing "Business reasons", in which case the shortage may be due to a change in strategy on their part. Alternatively, a number of products using the same active ingredient may have gone into shortage, suggesting that there might be problems sourcing this ingredient. The app does not provide any definite answers, but it provides some useful materials for thinking about the problem.</p>
+    </div>
+</div>
 
 {% endblock %}

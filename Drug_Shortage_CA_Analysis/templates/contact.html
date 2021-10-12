@@ -2,19 +2,15 @@
 
 {% block content %}
 
-<h2>{{ title }}.</h2>
-<h3>{{ message }}</h3>
+<div class="jumbotron">
+    <h2>{{ title }}</h2>
+</div>
 
-<address>
-    One Microsoft Way<br />
-    Redmond, WA 98052-6399<br />
-    <abbr title="Phone">P:</abbr>
-    425.555.0100
-</address>
-
-<address>
-    <strong>Support:</strong>   <a href="mailto:Support@example.com">Support@example.com</a><br />
-    <strong>Marketing:</strong> <a href="mailto:Marketing@example.com">Marketing@example.com</a>
-</address>
+<div class="row">
+    <div class="col-md-12">
+        <p class="contact_text">For questions or feedback on this web app, please email <a href="mailto:inquiries@operandumest.co.uk" target="_blank">Operandum Est</a>.</p>
+        <p class="contact_text">For questions about the data, please contact <a href="https://www.drugshortagescanada.ca/contact" target="_blank">Drug Shortages Canada</a> or the <a href="https://www.canada.ca/en/health-canada/services/drugs-health-products/drug-products/drug-product-database/contact-us.html" target="_blank">Drug Product Database</a>, as this web app is entirely based on their data.</p>
+    </div>
+</div>
 
 {% endblock %}
