@@ -203,16 +203,14 @@ def get_names():
     drugs = []
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
-    cur.execute("SELECT drug_code,drug_name,owner,din FROM drugs")
+    cur.execute("SELECT drug_code,drug_name,din,company_name FROM d_and_c")
     drug_data = cur.fetchall()
     for d in drug_data:
         drug = {}
         drug_code = d[0]
-        din = d[3]
+        din = d[2]
         drug_name = d[1]
-        owner = d[2]
-        cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (owner,))
-        owner = cur.fetchall()[0][0]
+        owner = d[3]
         drug = {"name" : drug_name, "code" : din, "company" : owner}
         drugs.append(drug)
     lists.append(drugs)
@@ -309,7 +307,10 @@ def get_summary(subj, type, term):
             if reports["data"][0]["status"] == "active_confirmed" or reports["data"][0]["status"] == "resolved":
                 dict2["report_url"] = "https://www.drugshortagescanada.ca/shortage/" + str(dict2["report_id"])
                 dict2["status"] = reports["data"][0]["status"]
-                dict2["latest_start"] = reports["data"][0]["actual_start_date"].rpartition("T")[0]
+                try:
+                    dict2["latest_start"] = reports["data"][0]["actual_start_date"].rpartition("T")[0]
+                except:
+                    dict2["latest_start"] = reports["data"][0]["anticipated_start_date"].rpartition("T")[0]
                 dict2["latest_reason"] = reports["data"][0]["shortage_reason"]["en_reason"]
                 if reports["data"][0]["status"] == "resolved":
                     dict2["latest_resolved"] = True
@@ -885,6 +886,8 @@ def visualize():
         else:
             return render_template('to_do.html')
         details = (what, id)
+        # This Stack Overflow answer was used to understand how to disable Jinja caching: https://stackoverflow.com/a/43200326/9022913
+        app.jinja_env.cache = {}
         return render_template('visualized.html', details = details,
             year=datetime.now().year,)
     else:
@@ -926,15 +929,10 @@ def summary():
         lists.append(query)
         response = get_summary(subj, type, term)
         lists.append(response)
+        app.jinja_env.cache = {}
         return render_template('summarized.html', lists=lists,
             year=datetime.now().year,)
     else:
         lists = get_names()
         return render_template('summaries.html', lists=lists,
             year=datetime.now().year,)
-
-# This Stack Overflow answer was used to understand how to disable Jinja caching: https://stackoverflow.com/a/43200326/9022913
-@app.before_request
-def before_request():
-    if 'localhost' in request.host_url or '0.0.0.0' in request.host_url:
-        app.jinja_env.cache = {}
