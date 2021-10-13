@@ -8,8 +8,6 @@ from flask import render_template, request, send_file
 from pyvis.network import Network
 from Drug_Shortage_CA_Analysis import app
 
-#TEST2
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # NB: FIND A MORE SECURE WAY OF ACCESSING THIS BEFORE SUBMISSION!!!
@@ -217,7 +215,7 @@ def get_names():
         drugs.append(drug)
     lists.append(drugs)
 
-    #Manufacturers
+    #Companies
     companies = []
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
@@ -573,14 +571,14 @@ def get_graph_entity(subj,type,id):
     # Drug
     if subj == 0:
         # Drug node
-        cur.execute("SELECT * FROM drugs WHERE din = ?", (id,))
+        cur.execute("SELECT drug_code,drug_name,owner,din,status,company_name FROM d_and_c WHERE din = ?", (id,))
         drug_data = cur.fetchall()
-        drug_code = drug_data[0][1]
+        drug_code = drug_data[0][0]
         start_drug = drug_code
-        drug_name = drug_data[0][2]
+        drug_name = drug_data[0][1]
         din = id
-        company = drug_data[0][3]
-        status = drug_data[0][5]
+        company = drug_data[0][2]
+        status = drug_data[0][4]
         start_company = company
         title = din
         color = ""
@@ -610,7 +608,7 @@ def get_graph_entity(subj,type,id):
         net.add_node(drug_code, label = drug_name, title = title, color = color, size = 100, mass = 100, shape = "diamond")
 
         # Company node
-        company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,)).fetchall()[0][0]
+        company_name = d[5]
         net.add_node(company, label = company_name, color = "#5380cf", size = 100, mass = 100, shape = "square")
         net.add_edge(company, drug_code)
 
@@ -631,14 +629,14 @@ def get_graph_entity(subj,type,id):
                 drug_code = ing[0]
                 if drug_code not in drug_nodes:
                     drug_nodes.add(drug_code)
-                    cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (drug_code,))
+                    cur.execute("SELECT drug_code,drug_name,owner,din,status,company_name FROM d_and_c WHERE drug_code = ?", (drug_code,))
                     drug_data = cur.fetchall()
-                    drug_code = drug_data[0][1]
+                    drug_code = drug_data[0][0]
                     start_drug = drug_code
-                    drug_name = drug_data[0][2]
-                    din = drug_data[0][4]
-                    status = drug_data[0][5]
-                    company = drug_data[0][3]
+                    drug_name = drug_data[0][1]
+                    din = drug_data[0][3]
+                    status = drug_data[0][4]
+                    company = drug_data[0][2]
                     title = din
                     color = ""
                     if drug_code in shortage_list:
@@ -664,7 +662,7 @@ def get_graph_entity(subj,type,id):
                         color = "#89d624"
                     net.add_node(drug_code, label = drug_name, title = title, color = color, shape = "diamond")
 
-                    company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,)).fetchall()[0][0]
+                    company_name = drug_data[0][5]
                     net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
                     net.add_edge(company, drug_code)
 
@@ -783,7 +781,7 @@ def get_graph_entity(subj,type,id):
         drug_links = cur.fetchall()
         for link in drug_links:
             drug_code = link[0]
-            cur.execute("SELECT * FROM drugs WHERE drug_code = ?", (drug_code,))
+            cur.execute("SELECT id,drug_code,drug_name,owner,din,status,company_name FROM d_and_c WHERE drug_code = ?", (drug_code,))
             drug_data = cur.fetchall()
             for drug in drug_data:
                 drug_name = drug[2]
@@ -817,7 +815,7 @@ def get_graph_entity(subj,type,id):
                 net.add_edge(drug_code, id)
 
                 # Company nodes
-                company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company,)).fetchall()[0][0]
+                company_name = drug[6]
                 net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
                 net.add_edge(company, drug_code)
 
