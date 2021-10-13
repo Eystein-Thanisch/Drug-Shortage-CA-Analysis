@@ -515,7 +515,7 @@ def get_graph_all():
         din = s[6]
         drug_name = cur.execute("SELECT drug_name FROM drugs WHERE drug_code = ?", (drug_code,)).fetchall()[0][0]
         company_name = cur.execute("SELECT company_name FROM companies WHERE company_code = ?", (company_code,)).fetchall()[0][0]
-        net.add_node(drug_code, label = drug_name, title = str(din) + "<br/>" + reason + "<br/>From " + started + "<br/>Report " + str(report_id), color = "#e30e38", shape = "diamond")
+        net.add_node(drug_code, label = drug_name, title = "DIN: " + str(din) + "<br/>" + reason + "<br/>From " + started + "<br/>Report " + str(report_id), color = "#e30e38", shape = "diamond")
         net.add_node(company_code, label = company_name, color = "#5380cf", shape = "square")
         net.add_edge(company_code, drug_code)
         ingredients = cur.execute("SELECT ingredient_name FROM ingredients WHERE used_in = ?", (drug_code,)).fetchall()
@@ -580,7 +580,7 @@ def get_graph_entity(subj,type,id):
         company = drug_data[0][2]
         status = drug_data[0][4]
         start_company = company
-        title = din
+        title = "DIN: " + din
         color = ""
         drug_nodes = set()
         drug_nodes.add(start_drug)
@@ -608,9 +608,11 @@ def get_graph_entity(subj,type,id):
         net.add_node(drug_code, label = drug_name, title = title, color = color, size = 100, mass = 100, shape = "diamond")
 
         # Company node
-        company_name = d[5]
+        company_name = drug_data[0][5]
         net.add_node(company, label = company_name, color = "#5380cf", size = 100, mass = 100, shape = "square")
         net.add_edge(company, drug_code)
+
+        headline = {"subj" : subj, "drug_name" : drug_name, "din" : din, "owner" : company_name}
 
         # Ingredient nodes
         ingredient_nodes = set()
@@ -637,7 +639,7 @@ def get_graph_entity(subj,type,id):
                     din = drug_data[0][3]
                     status = drug_data[0][4]
                     company = drug_data[0][2]
-                    title = din
+                    title = "DIN: " + din
                     color = ""
                     if drug_code in shortage_list:
                         reason = shortage_list[drug_code]["reason"]
@@ -684,7 +686,7 @@ def get_graph_entity(subj,type,id):
                 din = drug[4]
                 company = drug[3]
                 status = drug[5]
-                title = din
+                title = "DIN: " + din
                 color = ""
                 if drug_code in shortage_list:
                     reason = shortage_list[drug_code]["reason"]
@@ -725,6 +727,7 @@ def get_graph_entity(subj,type,id):
         company_data = cur.fetchall()
         company = id
         company_name = company_data[0][2]
+        headline = {"subj" : subj, "company" : company, "company_name" : company_name}
         net.add_node(company, label = company_name, color = "#5380cf", size = 100, mass = 100, shape = "square")
 
         # Drugs Nodes
@@ -735,7 +738,7 @@ def get_graph_entity(subj,type,id):
             drug_name = drug[2]
             din = drug[4]
             status = drug[5]
-            title = din
+            title = "DIN: " + din
             color = ""
             if drug_code in shortage_list:
                 reason = shortage_list[drug_code]["reason"]
@@ -776,19 +779,21 @@ def get_graph_entity(subj,type,id):
         ingredient_nodes.add(id)
         net.add_node(id, label = id, color = "#d0d624", size = 100, mass = 100, shape = "triangle")
 
+        headline = {"subj" : subj, "ingredient_name" : id}
+
         # Drug nodes
         cur.execute("SELECT used_in FROM ingredients WHERE ingredient_name = ?", (id,))
         drug_links = cur.fetchall()
         for link in drug_links:
             drug_code = link[0]
-            cur.execute("SELECT id,drug_code,drug_name,owner,din,status,company_name FROM d_and_c WHERE drug_code = ?", (drug_code,))
+            cur.execute("SELECT drug_code,drug_name,owner,din,status,company_name FROM d_and_c WHERE drug_code = ?", (drug_code,))
             drug_data = cur.fetchall()
             for drug in drug_data:
-                drug_name = drug[2]
-                din = drug[4]
-                company = drug[3]
-                status = drug[5]
-                title = din
+                drug_name = drug[1]
+                din = drug[3]
+                company = drug[2]
+                status = drug[4]
+                title = "DIN: " + din
                 color = ""
                 if drug_code in shortage_list:
                     reason = shortage_list[drug_code]["reason"]
@@ -815,7 +820,7 @@ def get_graph_entity(subj,type,id):
                 net.add_edge(drug_code, id)
 
                 # Company nodes
-                company_name = drug[6]
+                company_name = drug[5]
                 net.add_node(company, label = company_name, color = "#5380cf", shape = "square")
                 net.add_edge(company, drug_code)
 
@@ -834,7 +839,7 @@ def get_graph_entity(subj,type,id):
     net.save_graph('shortages_graph.html')
     os.chdir(BASE_DIR)
     con.close()
-    return
+    return headline
 
 def update_dbdt():
     ts = round(datetime.utcnow().timestamp() * 1000)
@@ -878,14 +883,14 @@ def visualize():
             subj = int(request.form.get("subject"))
             type = int(request.form.get("type"))
             id = request.form.get("term")
-            get_graph_entity(subj,type,id)
+            headline = get_graph_entity(subj,type,id)
         elif what == 3:
             get_graph_report(id)
         elif what == 4:
             get_graph_all()
         else:
             return render_template('to_do.html')
-        details = (what, id)
+        details = (what, id, headline)
         # This Stack Overflow answer was used to understand how to disable Jinja caching: https://stackoverflow.com/a/43200326/9022913
         app.jinja_env.cache = {}
         return render_template('visualized.html', details = details,

@@ -18,7 +18,15 @@
             {% elif details[0] == 4 %}
             The visualization below shows all products currently in listed as being in shortage in Canada.
             {% else %}
-            The specified entity and its nearest neighbours are mapped in the network visualization below.
+            {% if details[2]["subj"] == 0 %}
+            {{details[2]["drug_name"]}} ({{details[2]["din"]}}) [{{details[2]["owner"]}}]
+            {% elif details[2]["subj"] == 1 %}
+            {{details[2]["company_name"]}}
+            {% elif details[2]["subj"] == 2 %}
+            "{{details[2]["ingredient_name"]}}"
+            {% else %}
+            The specified entity
+            {% endif %} and its nearest neighbours are mapped in the network visualization below.
             {% endif %} It can be manipulated using the physics buttons below the viewing panel. If the nodes are moving about without your intervention and you wish to stop this, uncheck "enabled".
         </p>
         {% if details[0] <= 3 %}
