@@ -33,12 +33,17 @@ Most of this data (the exception being the contents of the **Dashboard**) is not
 swift retrieval and to ensure compliance with the [Drug Product Database](https://www.canada.ca/en/health-canada/services/drugs-health-products/drug-products/drug-product-database) API's call limit. This
 database can be refreshed at any time by the web app administrator. When it was last refreshed is shown on the homepage.
 
-##### File Structure
-DCSA is a Flask application. It was built initially in Visual Studio Code, using the provided Flask Web Project template, although some alterations had to be made when moving the application to the CS50 IDE 
-for submission. The application also makes use of a combination of API calls (via [requests](https://docs.python-requests.org/en/latest/)) and a SQLite database for obtaining data in response to user queries. Its webpages are rendered using a combination 
-of HTML and Jinja, with some use of [Bootstrap](https://getbootstrap.com/) and some bespoke JavaScript and JQuery functions, as well as [Select2](https://select2.org/).
+##### Technical Details
+DCSA is a [Flask](https://flask.palletsprojects.com/en/2.0.x/) application. It was built initially in Visual Studio Code, using the provided Flask Web Project template, although some alterations had to be made when moving the application to the CS50 IDE 
+for submission. The application also makes use of a combination of API calls (via [requests](https://docs.python-requests.org/en/latest/)) and a [SQLite](https://www.sqlite.org/index.html) database for obtaining data in response to user queries. Its webpages are rendered using a combination 
+of HTML and [Jinja](https://jinja.palletsprojects.com/en/3.0.x/), with some use of [Bootstrap](https://getbootstrap.com/) and some bespoke JavaScript and JQuery functions, as well as [Select2](https://select2.org/). The network visualizations are built and 
+rendered in [Pyvis](https://pyvis.readthedocs.io/en/latest/).
 
-Under the hood, the application is created in \_\_init\_\_.py, although most of the functions are found in views.py, as are the application's various routes.
+Under the hood, the application is created in \_\_init\_\_.py, although most of the application's core functions are found in views.py, as are the application's various routes. These core functions retrieve data from either the APIs 
+or the SQLite database (data/dpd\_codes.db) in response to user queries and package it as JSON payloads, which are then used by either Jinja or Pyvis to present the information to the user via the application in a curated manner. Two further functions are 
+found in db\_update.py. These comprehensively update the SQLite database from the APIs and provide a timestamp showing when the update occurred. db\_update.py cannot be triggered by the user; it has to be run from the 
+command line by the application administrator. This is because it takes about 5 minutes for db\_update.py to update the database and there was no way of building that process into the application without
+severely impacting user satisfaction. If DSCA is ever turned into a public application, the database will hopefully be kept updated regularly by the server on a separate thread. 
 
 ##### Warnings and Disclaimers
 Large quantities of data can be returned by many queries and generating visualizations thereof can take some time. Demanding queries can sometimes be predicted (e.g. if the query results are 
