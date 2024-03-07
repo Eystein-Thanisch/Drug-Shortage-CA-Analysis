@@ -52,9 +52,9 @@ making any assumptions about what is going to be relevant to any given situation
 
 DSCA's query results are based on the data as received from the APIs and taken at face value. That is, no attempt has been made to interpret or link together entities beyond the network graphs 
 themselves. For example, some large pharmaceutical ventures will consist of multiple companies that appear as separate in the data (e.g. "PFIZER CANADA ULC" v. "PFIZER CONSUMER HEALTHCARE A 
-DIVISION OF PFIZER CANADA ULC". In practice, they will likely coordinate their business activities, but they must be treated as separate companies for the purposes of querying the data. Active 
+DIVISION OF PFIZER CANADA ULC"). In practice, they will likely coordinate their business activities, but they must be treated as separate companies for the purposes of querying the data. Active 
 ingredients are not uniquely identified in the [Drug Product Database](https://www.canada.ca/en/health-canada/services/drugs-health-products/drug-products/drug-product-database), meaning that 
-they must be identified by the names provided. Some of these names seem to be referring to the same ingredient (e.g. "PENICILLIN G POTASSIUM" v. "PENICILLIN G (PENICILLIN G POTASSIUM)", but, 
+they must be identified by the names provided. Some of these names seem to be referring to the same ingredient (e.g. "PENICILLIN G POTASSIUM" v. "PENICILLIN G (PENICILLIN G POTASSIUM)"), but, 
 as this cannot be assumed programmtically across the data, they must necessarily be treated as separate for the purposes of queries.
 
 Finally, to reiterate the disclaimer on the homepage, this web app is for academic research only and should not be used to make any sort of commercial or medical decision. Consult a medical 
