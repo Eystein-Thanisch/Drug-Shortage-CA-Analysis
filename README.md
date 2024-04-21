@@ -2,6 +2,8 @@
 
 #### Video Demo:
 
+View a short demo of DSCA [here](https://youtu.be/SYDqVUg2Y0s).
+
 #### Description
 
 ##### Motivation
@@ -76,3 +78,12 @@ Documentation for the key technologies used in DSCA:
 - [Pyvis](https://pyvis.readthedocs.io/en/latest/)
 - [Select2](https://select2.org/)
 - [SQLite](https://www.sqlite.org/index.html)
+
+#### Get Started
+
+To run DSC locally,
+
+- Clone the repo to your machine
+- Set up a Python Virtual environment: `python -m venv .venv`
+- Install the required packages: `pip install -r requirements.txt`
+- Run the app: `python runserver.py`
