@@ -147,7 +147,7 @@ def update_database():
            except:
                company_code = "no_code"
            reason = report["shortage_reason"]["en_reason"]
-           started = report["anticipated_start_date"]
+           started = report.get("anticipated_start_date", None)
            details = (drug_code, company_code, reason, started, report_id, din)
            values.append(details)
    cur.executemany("INSERT INTO anticipated_shortages (drug_code, company_code, reason, started, report_id, din) VALUES (?, ?, ?, ?, ?, ?)", values)
@@ -885,9 +885,9 @@ def visualize():
             id = request.form.get("term")
             headline = get_graph_entity(subj,type,id)
         elif what == 3:
-            get_graph_report(id)
+            headline = get_graph_report(id)
         elif what == 4:
-            get_graph_all()
+            headline = get_graph_all()
         else:
             return render_template('to_do.html')
         details = (what, id, headline)
