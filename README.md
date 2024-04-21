@@ -2,6 +2,8 @@
 
 #### Video Demo:
 
+View a short demo of DSCA [here](https://youtu.be/SYDqVUg2Y0s).
+
 #### Description
 
 ##### Motivation
@@ -69,6 +71,7 @@ issues that DSCA could be used to explore. For example:
 - '[Role of Canadian pharmacists in managing drug shortage concerns amid the COVID-19 pandemic](https://doi.org/10.1177/1715163520929387)' (publ. 29/05/2020)
 - '[One quarter of prescription drugs in Canada may be in short supply](https://www.sciencedaily.com/releases/2020/09/200901085306.htm)' (publ. 01/09/2020)
 - '[Wasp Venom Can Save Lives. But the Supply Chain Is Shaky](https://undark.org/2020/11/16/wasp-venom-shaky-supply-chain/)' (publ. 11/16/2020)
+- '[Why is the UK being hit by medicine supply shortages?](https://www.theguardian.com/politics/2024/jan/14/why-is-uk-being-hit-by-medicine-supply-shortages)' (publ. 14/01/2024)
 
 Documentation for the key technologies used in DSCA:
 
@@ -76,3 +79,12 @@ Documentation for the key technologies used in DSCA:
 - [Pyvis](https://pyvis.readthedocs.io/en/latest/)
 - [Select2](https://select2.org/)
 - [SQLite](https://www.sqlite.org/index.html)
+
+#### Get Started
+
+To run DSC locally,
+
+- Clone the repo to your machine
+- Set up a Python Virtual environment: `python -m venv .venv`
+- Install the required packages: `pip install -r requirements.txt`
+- Run the app: `python runserver.py`
