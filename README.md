@@ -86,5 +86,6 @@ To run DSC locally,
 
 - Clone the repo to your machine
 - Set up a Python Virtual environment: `python -m venv .venv`
+- Activate the Virtual Environment: `.venv/Scripts/Activate`
 - Install the required packages: `pip install -r requirements.txt`
 - Run the app: `python runserver.py`
