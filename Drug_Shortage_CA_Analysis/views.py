@@ -3,6 +3,7 @@ import requests
 import os.path
 import sqlite3
 
+from Drug_Shortage_CA_Helpers.helpers import get_company_data
 from datetime import datetime, timezone
 from flask import render_template, request, send_file
 from pyvis.network import Network
@@ -13,23 +14,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # NB: FIND A MORE SECURE WAY OF ACCESSING THIS BEFORE SUBMISSION!!!
 auth_token = "02597e45864d4229bcb509e6db650f7a"
 
-
 def update_database():
     con = sqlite3.connect(BASE_DIR + "\\data\dpd_codes.db")
     cur = con.cursor()
 
     # Companies
     cur.execute("DELETE FROM companies")
-    url = "https://health-products.canada.ca/api/drug/company"
-    response = requests.get(url)
-    company_data = response.json()
-    values = []
-    codes = set()
-    for datum in company_data:
-        if datum["company_code"] not in codes:
-            codes.add(datum["company_code"])
-            details = (datum["company_code"], datum["company_name"])
-            values.append(details)
+    values = get_company_data()
     cur.executemany(
         "INSERT INTO companies (company_code, company_name) VALUES(?, ?)", values
     )
