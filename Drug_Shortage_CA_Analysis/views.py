@@ -3,7 +3,7 @@ import requests
 import os.path
 import sqlite3
 
-from Drug_Shortage_CA_Helpers.helpers import get_company_data
+from Drug_Shortage_CA_Helpers.helpers import get_company_data, get_drug_ingredients, get_drug_status, get_active_shortage_data, get_anticipated_shortage_data, get_discontinuation_data
 from datetime import datetime, timezone
 from flask import render_template, request, send_file
 from pyvis.network import Network
@@ -21,12 +21,14 @@ def update_database():
     # Companies
     cur.execute("DELETE FROM companies")
     values = get_company_data()
+    values = values[:-1]
     cur.executemany(
         "INSERT INTO companies (company_code, company_name) VALUES(?, ?)", values
     )
     con.commit()
 
     # Drugs
+    # TODO: Find a way to make this an independent function without a DB query
     cur.execute("DELETE FROM drugs")
     url = "https://health-products.canada.ca/api/drug/drugproduct"
     response = requests.get(url)
@@ -52,27 +54,14 @@ def update_database():
     con.commit()
 
     # Drug Status
-    url = "https://health-products.canada.ca/api/drug/status"
-    response = requests.get(url)
-    status_data = response.json()
-    for datum in status_data:
-        drug_code = datum["drug_code"]
-        status = datum["status"]
-        details = (status, drug_code)
+    values = get_drug_status()
+    for details in values:
         cur.execute("UPDATE drugs SET status = ? WHERE drug_code = ?", details)
     con.commit()
 
     # Ingredients
     cur.execute("DELETE FROM ingredients")
-    url = "https://health-products.canada.ca/api/drug/activeingredient"
-    response = requests.get(url)
-    ing_data = response.json()
-    values = []
-    for datum in ing_data:
-        name = datum["ingredient_name"]
-        used_in = datum["drug_code"]
-        details = (name, used_in)
-        values.append(details)
+    values = get_drug_ingredients()
     cur.executemany(
         "INSERT INTO ingredients (ingredient_name, used_in) VALUES(?, ?)", values
     )
@@ -80,41 +69,10 @@ def update_database():
 
     # Shortages
     cur.execute("DELETE FROM shortages")
-    base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=active_confirmed&limit=50"
-    header = {"auth-token": auth_token}
-    response = requests.get(base_url, headers=header)
-    reports = response.json()
-    p = reports["total_pages"]
-    o = 0
-    values = []
-    for x in range(p):
-        url = base_url + "&offset=" + str(o)
-        o = o + 50
-        response = requests.get(url, headers=header)
-        reports = response.json()
-        if "error" in reports:
-            error_text = reports["error"]["en"]
-            return render_template("error.html", text=error_text)
-        data = reports["data"]
-        for report in data:
-            report_id = report["id"]
-            try:
-                drug_code = report["drug"]["drug_code"]
-            except:
-                drug_code = report["drug"]["din"]
-            din = report["drug"]["din"]
-            try:
-                company_code = report["drug"]["company"]["company_code"]
-            except:
-                company_code = "no_code"
-            reason = report["shortage_reason"]["en_reason"]
-            started = ""
-            try:
-                started = report["actual_start_date"]
-            except:
-                started = report["anticipated_start_date"]
-            details = (drug_code, company_code, reason, started, report_id, din)
-            values.append(details)
+    try:
+        values = get_active_shortage_data()
+    except Exception as e:
+        return render_template("error.html", text=e.args[0])
     cur.executemany(
         "INSERT INTO shortages (drug_code, company_code, reason, started, report_id, din) VALUES (?, ?, ?, ?, ?, ?)",
         values,
@@ -123,37 +81,10 @@ def update_database():
 
     # Anticipated Shortages
     cur.execute("DELETE FROM anticipated_shortages")
-    base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=anticipated_shortage&limit=50"
-    header = {"auth-token": auth_token}
-    response = requests.get(base_url, headers=header)
-    reports = response.json()
-    if "error" in reports:
-        error_text = reports["error"]["en"]
-        return render_template("error.html", text=error_text)
-    p = reports["total_pages"]
-    o = 0
-    values = []
-    for x in range(p):
-        url = base_url + "&offset=" + str(o)
-        o = o + 50
-        response = requests.get(url, headers=header)
-        reports = response.json()
-        data = reports["data"]
-        for report in data:
-            report_id = report["id"]
-            try:
-                drug_code = report["drug"]["drug_code"]
-            except:
-                drug_code = report["drug"]["din"]
-            din = report["drug"]["din"]
-            try:
-                company_code = report["drug"]["company"]["company_code"]
-            except:
-                company_code = "no_code"
-            reason = report["shortage_reason"]["en_reason"]
-            started = report.get("anticipated_start_date", None)
-            details = (drug_code, company_code, reason, started, report_id, din)
-            values.append(details)
+    try:
+        values = get_anticipated_shortage_data()
+    except Exception as e:
+        return render_template("error.html", text=e.args[0])
     cur.executemany(
         "INSERT INTO anticipated_shortages (drug_code, company_code, reason, started, report_id, din) VALUES (?, ?, ?, ?, ?, ?)",
         values,
@@ -162,41 +93,10 @@ def update_database():
 
     # Discontinuations
     cur.execute("DELETE FROM discontinuations")
-    base_url = "https://www.drugshortagescanada.ca/api/v1/search?filter_status=discontinued&limit=50"
-    header = {"auth-token": auth_token}
-    response = requests.get(base_url, headers=header)
-    reports = response.json()
-    if "error" in reports:
-        error_text = reports["error"]["en"]
-        return render_template("error.html", text=error_text)
-    p = reports["total_pages"]
-    o = 0
-    values = []
-    for x in range(p):
-        url = base_url + "&offset=" + str(o)
-        o = o + 50
-        response = requests.get(url, headers=header)
-        reports = response.json()
-        data = reports["data"]
-        for report in data:
-            report_id = report["id"]
-            try:
-                drug_code = report["drug"]["drug_code"]
-            except:
-                drug_code = report["drug"]["din"]
-            din = report["drug"]["din"]
-            try:
-                company_code = report["drug"]["company"]["company_code"]
-            except:
-                company_code = "no_code"
-            reason = report["discontinuance_reason"]["en_reason"]
-            started = ""
-            try:
-                started = report["discontinuation_date"]
-            except:
-                started = report["anticipated_discontinuation_date"]
-            details = (drug_code, company_code, reason, started, report_id, din)
-            values.append(details)
+    try:
+        values = get_discontinuation_data()
+    except Exception as e:
+        return render_template("error.html", text=e.args[0])
     cur.executemany(
         "INSERT INTO discontinuations (drug_code, company_code, reason, started, report_id, din) VALUES (?, ?, ?, ?, ?, ?)",
         values,
