@@ -62,6 +62,10 @@ as this cannot be assumed programmtically across the data, they must necessarily
 Finally, to reiterate the disclaimer on the homepage, this web app is for academic research only and should not be used to make any sort of commercial or medical decision. Consult a medical 
 professional on all matters relating to your own or someone else's medication.
 
+#### Notebook Access
+A [notebook](https://github.com/Eystein-Thanisch/Drug-Shortage-CA-Analysis/blob/main/notebooks/drug_shortage_data_exploration.ipynb) for pulling the data used on the APP direct from the API is 
+available if you wish to perform your own analysis. This notebook is designed to work in the context of this repo.
+
 ##### Further Reading
 In order to understand the data presented by DSCA, the information provided by [Drug Shortages Canada](https://www.drugshortagescanada.ca) and the 
 [Drug Product Database](https://www.canada.ca/en/health-canada/services/drugs-health-products/drug-products/drug-product-database) should be studied closely. Otherwise, data from 
