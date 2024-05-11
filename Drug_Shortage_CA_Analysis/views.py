@@ -498,11 +498,11 @@ def get_graph_all():
             label=drug_name,
             title="DIN: "
             + str(din)
-            + "<br/>"
+            + " "
             + reason
-            + "<br/>From "
+            + " From "
             + started
-            + "<br/>Report "
+            + " Report "
             + str(report_id),
             color="#e30e38",
             shape="diamond",
@@ -525,6 +525,12 @@ def get_graph_all():
     con.close()
     return
 
+def get_node_title(title, reason, started):
+
+    if started is None:
+        started = "unknown date."
+
+    return f"{str(title)}: {str(reason)} From {str(started)}"
 
 def get_graph_entity(subj, type, id):
     # Create network
@@ -585,12 +591,12 @@ def get_graph_entity(subj, type, id):
             reason = shortage_list[drug_code]["reason"]
             started = shortage_list[drug_code]["started"]
             color = "#e30e38"
-            title = title + "<br/>" + reason + "<br/>From " + started
+            title = get_node_title(title, reason, started)
         elif drug_code in ant_shortage_list:
             reason = ant_shortage_list[drug_code]["reason"]
             started = ant_shortage_list[drug_code]["started"]
             color = "#cf8702"
-            title = title + "<br/>" + reason + "<br/>From " + started
+            title = get_node_title(title, reason, started)
         elif drug_code in discontinuation_list or "CANCELLED" in status:
             try:
                 reason = discontinuation_list[drug_code]["reason"]
@@ -599,7 +605,7 @@ def get_graph_entity(subj, type, id):
                 reason = status
                 started = "[unavailable]"
             color = "#abaaa7"
-            title = title + "<br/>" + reason + "<br/>From " + started
+            title = get_node_title(title, reason, started)
         else:
             color = "#89d624"
         net.add_node(
@@ -676,12 +682,12 @@ def get_graph_entity(subj, type, id):
                         reason = shortage_list[drug_code]["reason"]
                         started = shortage_list[drug_code]["started"]
                         color = "#e30e38"
-                        title = title + "<br/>" + reason + "<br/>From " + started
+                        title = get_node_title(title, reason, started)
                     elif drug_code in ant_shortage_list:
                         reason = ant_shortage_list[drug_code]["reason"]
                         started = ant_shortage_list[drug_code]["started"]
                         color = "#cf8702"
-                        title = title + "<br/>" + reason + "<br/>From " + started
+                        title = get_node_title(title, reason, started)
                     elif drug_code in discontinuation_list or "CANCELLED" in status:
                         try:
                             reason = discontinuation_list[drug_code]["reason"]
@@ -690,7 +696,7 @@ def get_graph_entity(subj, type, id):
                             reason = status
                             started = "[unavailable]"
                         color = "#abaaa7"
-                        title = title + "<br/>" + reason + "<br/>From " + started
+                        title = get_node_title(title, reason, started)
                     else:
                         color = "#89d624"
                     net.add_node(
@@ -739,12 +745,12 @@ def get_graph_entity(subj, type, id):
                     reason = shortage_list[drug_code]["reason"]
                     started = shortage_list[drug_code]["started"]
                     color = "#e30e38"
-                    title = title + "<br/>" + reason + "<br/>From " + started
+                    title = get_node_title(title, reason, started)
                 elif drug_code in ant_shortage_list:
                     reason = ant_shortage_list[drug_code]["reason"]
                     started = ant_shortage_list[drug_code]["started"]
                     color = "#cf8702"
-                    title = title + "<br/>" + reason + "<br/>From " + started
+                    title = get_node_title(title, reason, started)
                 elif drug_code in discontinuation_list or "CANCELLED" in status:
                     try:
                         reason = discontinuation_list[drug_code]["reason"]
@@ -753,7 +759,7 @@ def get_graph_entity(subj, type, id):
                         reason = status
                         started = "[unavailable]"
                     color = "#abaaa7"
-                    title = title + "<br/>" + reason + "<br/>From " + started
+                    title = get_node_title(title, reason, started)
                 else:
                     color = "#89d624"
                 net.add_node(
@@ -809,12 +815,12 @@ def get_graph_entity(subj, type, id):
                 reason = shortage_list[drug_code]["reason"]
                 started = shortage_list[drug_code]["started"]
                 color = "#e30e38"
-                title = title + "<br/>" + reason + "<br/>From " + started
+                title = get_node_title(title, reason, started)
             elif drug_code in ant_shortage_list:
                 reason = ant_shortage_list[drug_code]["reason"]
                 started = ant_shortage_list[drug_code]["started"]
                 color = "#cf8702"
-                title = title + "<br/>" + reason + "<br/>From " + started
+                title = get_node_title(title, reason, started)
             elif drug_code in discontinuation_list or "CANCELLED" in status:
                 try:
                     reason = discontinuation_list[drug_code]["reason"]
@@ -823,7 +829,7 @@ def get_graph_entity(subj, type, id):
                     reason = status
                     started = "[unavailable]"
                 color = "#abaaa7"
-                title = title + "<br/>" + reason + "<br/>From " + started
+                title = get_node_title(title, reason, started)
             else:
                 color = "#89d624"
             net.add_node(
@@ -876,12 +882,12 @@ def get_graph_entity(subj, type, id):
                     reason = shortage_list[drug_code]["reason"]
                     started = shortage_list[drug_code]["started"]
                     color = "#e30e38"
-                    title = title + "<br/>" + reason + "<br/>From " + started
+                    title = get_node_title(title, reason, started)
                 elif drug_code in ant_shortage_list:
                     reason = ant_shortage_list[drug_code]["reason"]
                     started = ant_shortage_list[drug_code]["started"]
                     color = "#cf8702"
-                    title = title + "<br/>" + reason + "<br/>From " + started
+                    title = get_node_title(title, reason, started)
                 elif drug_code in discontinuation_list or "CANCELLED" in status:
                     try:
                         reason = discontinuation_list[drug_code]["reason"]
@@ -890,7 +896,7 @@ def get_graph_entity(subj, type, id):
                         reason = status
                         started = "[unavailable]"
                     color = "#abaaa7"
-                    title = title + "<br/>" + reason + "<br/>From " + started
+                    title = get_node_title(title, reason, started)
                 else:
                     color = "#89d624"
                 net.add_node(
