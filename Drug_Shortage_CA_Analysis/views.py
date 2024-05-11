@@ -500,7 +500,7 @@ def get_graph_all():
             + str(din)
             + " "
             + str(reason)
-            + f" From {str(started) if started is not None else "unknown date"}. "
+            + f" From {str(started) if started is not None else 'unknown date'}. "
             + " Report "
             + str(report_id),
             color="#e30e38",

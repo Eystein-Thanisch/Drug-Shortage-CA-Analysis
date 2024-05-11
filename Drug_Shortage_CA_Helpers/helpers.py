@@ -94,7 +94,7 @@ def get_shortage_data(shortage_status: str):
                 company_code = "no_code"
             status = report["status"]
             reason = report.get("shortage_reason", report.get("discontinuance_reason", {})).get("en_reason", None)
-            started = report.get("anticipated_start_date", report.get("discontinuation_date", report.get("anticipated_discontinuation_date", None)))
+            started = report.get("actual_start_date", report.get("anticipated_start_date", report.get("discontinuation_date", report.get("anticipated_discontinuation_date", None))))
             details = (drug_code, company_code, reason, started, report_id, din, status)
             values.append(details)
     return values
