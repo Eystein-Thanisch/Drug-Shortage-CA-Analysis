@@ -499,9 +499,8 @@ def get_graph_all():
             title="DIN: "
             + str(din)
             + " "
-            + reason
-            + " From "
-            + started
+            + str(reason)
+            + f" From {str(started) if started is not None else "unknown date"}. "
             + " Report "
             + str(report_id),
             color="#e30e38",
